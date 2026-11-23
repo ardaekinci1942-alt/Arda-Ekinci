@@ -1,61 +1,83 @@
 # ardaekinci.com
 
-Kişisel fotoğraf / portfolyo sitesi. GitHub Pages üzerinde **ücretsiz** çalışır,
-sunucu ya da veritabanı gerektirmez. Fotoğraflar `/admin` panelinden yüklenir.
+Arda Ekinci'nin kişisel anı sitesi: fotoğraflar, yolculuklar, notlar, hakkımda ve CV bir arada.
+Site **GitHub Pages** üzerinde ücretsiz çalışır. Sunucu, veritabanı ya da aylık ücret yok, sadece alan adı ücreti var.
+Bütün içerik `/admin` panelinden yönetilir.
 
-## Yapı
+## Sitede neler var?
 
-```
-index.html            Ana sayfa
-assets/               Stil, script, ikon
-admin/                Yönetim paneli (ardaekinci.com/admin)
-data/site.json        İsim, slogan, hakkımda, iletişim bilgileri
-data/photos.json      Fotoğraf listesi (sıra, başlık, kategori…)
-photos/               Yüklenen fotoğraflar (+ thumbs/ küçük önizlemeler)
-images/               Portre fotoğrafı
-CNAME                 Özel alan adı: ardaekinci.com
-```
+| Sayfa | İçerik |
+|---|---|
+| **Ana sayfa** | Açılış animasyonu, dönen kapak fotoğrafları, kayan yazılar, yatay kayan “En yeni anılar”, hikâyeler, sayılar, gezilen yerleri gösteren dönen dünya küresi, notlar, hakkımda tanıtımı, iletişim |
+| **Anılar** (`#/anilar`) | Instagram tarzı profil + ızgara / akış / zaman tüneli görünümleri, arama, sonsuz kaydırma |
+| **Koleksiyonlar** (`#/koleksiyonlar`) | Albümler (elle oluşturulan), ülkeler ve yıllar (kendiliğinden oluşur) |
+| **Koleksiyon sayfası** | Kapak, tarih aralığı, yerler, galeri, “Hikâye olarak izle” |
+| **Hakkımda** (`#/hakkimda`) | Hikâye, “Şu sıralar”, kısaca bilgiler, deneyim, eğitim, yetenekler, diller, projeler, CV indirme |
+| **Anı görüntüleyici** | Tam ekran, kaydırmalı çoklu fotoğraf, konum/tarih, paylaş, önceki/sonraki |
+| **Hikâye izleyici** | Instagram hikâyesi gibi: ilerleme çubukları, dokun-geç, basılı tut-durdur, aşağı kaydır-kapat |
 
-## Kurulum (tek seferlik)
+Her anının kendine ait bir bağlantısı var (ör. `ardaekinci.com/#/ani/…`), “Paylaş” ile WhatsApp vb. yerlere gönderilebilir.
 
-### 1. Kodu `main` dalına al
-Bu dalı (`claude/...`) `main`'e birleştir (GitHub'da Pull Request → Merge).
+## Yönetim paneli (`/admin`)
 
-### 2. GitHub Pages'i aç
-Repo → **Settings → Pages** →
-- **Source:** Deploy from a branch
-- **Branch:** `main` / `(root)` → **Save**
-- **Custom domain:** `ardaekinci.com` → Save
-- DNS doğrulandıktan sonra **Enforce HTTPS** kutusunu işaretle.
+- **Anılar:** Fotoğrafları seç → konum ve çekim tarihi fotoğrafın içinden otomatik okunur → ister her biri ayrı anı, ister hepsi tek kaydırmalı anı olsun.
+  “✎ Not” ile yazı paylaşımı. Bir anıya dokununca düzenleme: başlık, açıklama, konum, tarih, albüm, kapak ★, sabitle 📌, gizle, fotoğraf ekle/çıkar/sırala.
+- **Toplu işlem:** “Seç” (ya da bir anıya uzun bas) → albüme ekle, konum, tarih, gizle/göster, sabitle, kapağa ekle, birleştir, ayır, **toplu sil**.
+- **Albümler:** oluştur, kapak seç, anı ekle/çıkar, sırala.
+- **Profil:** profil fotoğrafı, portre, isim, kullanıcı adı, tanıtım cümlesi, hakkımda yazısı, “şu sıralar”, sosyal medya, kısaca bilgiler.
+- **CV:** deneyim, eğitim, yetenekler, diller, projeler (görselli), PDF CV yükleme.
+- **Ayarlar:** vurgu rengi, açılış animasyonu, ana sayfa bölümlerini aç/kapa, dönen ve kayan kelimeler.
 
-> Repo **public** olmalı (ücretsiz GitHub hesabında Pages için gerekli).
+Değişiklikler önce panelde birikir, **Yayınla** deyince tek seferde kaydedilir. Site 1–2 dakika içinde güncellenir.
+Fotoğraflar tarayıcıda otomatik küçültülür (en uzun kenar 2400 px), telefondan direkt yüklenebilir.
+Gizlilik için fotoğrafın tam GPS konumu kaydedilmez, sadece şehir ve ülke adı (yaklaşık konum) saklanır.
 
-### 3. Alan adının DNS ayarları
-Alan adını aldığın firmanın (GoDaddy, Natro, İsimtescil, Cloudflare…) DNS panelinde:
-
-| Tür   | Ad (Host) | Değer                    |
-|-------|-----------|--------------------------|
-| A     | @         | 185.199.108.153          |
-| A     | @         | 185.199.109.153          |
-| A     | @         | 185.199.110.153          |
-| A     | @         | 185.199.111.153          |
-| CNAME | www       | ardaekinci1942-alt.github.io |
-
-Yayılması birkaç dakika ile birkaç saat sürebilir.
-
-### 4. Admin anahtarı (token) oluştur
+### Panele giriş anahtarı
 1. https://github.com/settings/personal-access-tokens/new
 2. **Repository access → Only select repositories →** `Arda-Ekinci`
-3. **Repository permissions → Contents → Read and write**
-4. **Generate token** → kodu kopyala.
+3. **Permissions → Contents → Read and write**
+4. **Generate token** → çıkan `github_pat_…` kodunu panelde yapıştır.
 
-## Kullanım
-1. `https://ardaekinci.com/admin` adresine git, anahtarı yapıştırıp giriş yap.
-2. **Fotoğraflar:** sürükle-bırak ile yükle. Karta tıkla → başlık, kategori, açıklama.
-   ★ işaretliler ana sayfa kapağında döner. Sürükleyerek veya oklarla sırala.
-3. **Profil:** isim, slogan, hakkımda yazısı, e-posta, sosyal medya, portre.
-4. Alttaki **Yayınla** butonuna bas → 1–2 dakika içinde site güncellenir.
+## ardaekinci.com alan adını bağlamak
 
-Fotoğraflar tarayıcıda otomatik olarak küçültülür (en uzun kenar 2400px) — telefondan
-direkt yükleyebilirsin. Sitedeki kategoriler, fotoğraflara verdiğin kategori adlarından
-otomatik oluşur.
+1. Alan adını satın al (Cloudflare, Porkbun ya da bir Türk firması). Sadece alan adı yeterli, **hosting paketi alma**.
+2. Alan adı firmasının DNS ayarlarına şu kayıtları ekle:
+
+   | Tür | Ad | Değer |
+   |---|---|---|
+   | A | @ | 185.199.108.153 |
+   | A | @ | 185.199.109.153 |
+   | A | @ | 185.199.110.153 |
+   | A | @ | 185.199.111.153 |
+   | CNAME | www | ardaekinci1942-alt.github.io |
+
+3. GitHub'da repo → **Settings → Pages → Custom domain** → `ardaekinci.com` → **Save**
+   (GitHub otomatik olarak bir `CNAME` dosyası ekler; silme.)
+4. DNS doğrulanınca aynı sayfada **Enforce HTTPS** kutusunu işaretle.
+
+Ziyaretçiler sadece `ardaekinci.com` adresini görür, GitHub arka planda dosyaları saklar.
+Panel de `ardaekinci.com/admin` adresinden aynen çalışır.
+
+## Dosya yapısı
+
+```
+index.html              Site iskeleti (tek sayfa, içerik JavaScript ile çizilir)
+assets/css/app.css      Tüm tasarım
+assets/js/core.js       Veri, yardımcılar, ortak parçalar
+assets/js/shell.js      Açılış animasyonu, menü, sayfa geçişleri, yönlendirme
+assets/js/home.js       Ana sayfa
+assets/js/pages.js      Anılar, koleksiyonlar, hakkımda
+assets/js/overlays.js   Anı görüntüleyici ve hikâye izleyici
+assets/js/globe.js      Dünya küresi
+assets/vendor/          GSAP, d3-geo, topojson, dünya haritası (dışarıya bağımlılık yok)
+admin/                  Yönetim paneli
+data/site.json          Profil, CV, görünüm ayarları
+data/posts.json         Anılar ve albümler
+photos/                 Fotoğraflar (+ thumbs/ küçük önizlemeler)
+images/, files/         Profil/proje görselleri, CV PDF
+```
+
+## Notlar
+- GitHub Pages yaklaşık 1 GB'a kadar rahat çalışır (aşağı yukarı 1000+ fotoğraf).
+- Bir seferde çok fazla fotoğraf yayınlanırsa GitHub kısa molalar isteyebilir; panel bekleyip kendisi devam eder.
+- Kod tarafında bir şey değişirse tarayıcı eski sürümü en fazla ~10 dakika hafızasında tutabilir; sayfayı yenilemek yeterli.

@@ -2,106 +2,94 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Arda Ekinci</title>
-  <meta name="description" content="Arda Ekinci — fotoğraflar, hikâyeler ve anlar.">
-  <meta property="og:title" content="Arda Ekinci">
-  <meta property="og:description" content="Fotoğraflar, hikâyeler ve anlar.">
+  <meta name="description" content="Arda Ekinci — anılar, yolculuklar ve hayattan kareler.">
+  <link rel="canonical" href="https://ardaekinci.com/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Arda Ekinci">
+  <meta property="og:title" content="Arda Ekinci">
+  <meta property="og:description" content="Anılar, yolculuklar ve hayattan kareler.">
   <meta property="og:url" content="https://ardaekinci.com/">
-  <meta name="theme-color" content="#0e0d0c">
+  <meta property="og:image" content="https://ardaekinci.com/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="tr_TR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0b0a09">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Inter:wght@300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/app.css?v=3">
+  <script>
+    (function () {
+      var d = document.documentElement, h = location.hash.replace(/^#\/?/, "");
+      var seen = false, rm = false;
+      try { seen = sessionStorage.getItem("ae_intro") === "1"; } catch (e) {}
+      try { rm = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+      if (seen || rm || h.length > 0) d.classList.add("no-intro");
+      try {
+        var a = localStorage.getItem("ae_accent");
+        if (/^#[0-9a-f]{6}$/i.test(a || "")) d.style.setProperty("--accent", a);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .no-intro #intro { display: none; }
+    #intro { animation: ae-failsafe 0s 14s forwards; }
+    @keyframes ae-failsafe { to { visibility: hidden; opacity: 0; pointer-events: none; } }
+  </style>
 </head>
 <body>
-  <header class="nav" id="nav">
-    <a href="#top" class="brand" data-name>Arda Ekinci</a>
-    <nav class="nav-links">
-      <a href="#galeri">Galeri</a>
-      <a href="#hakkimda">Hakkımda</a>
-      <a href="#iletisim">İletişim</a>
-    </nav>
-  </header>
-
-  <main>
-    <!-- HERO -->
-    <section class="hero" id="top">
-      <div class="hero-slides" id="heroSlides"></div>
-      <div class="hero-shade"></div>
-      <div class="hero-content">
-        <p class="eyebrow reveal">Portfolyo · <span data-location>Türkiye</span></p>
-        <h1 class="hero-title reveal" data-name-split>Arda <em>Ekinci</em></h1>
-        <p class="hero-tagline reveal" data-tagline></p>
-        <a href="#galeri" class="btn reveal">Fotoğraflara göz at <span aria-hidden="true">→</span></a>
-      </div>
-      <a href="#galeri" class="scroll-cue" aria-label="Aşağı kaydır"><span></span></a>
-    </section>
-
-    <!-- GALLERY -->
-    <section class="section" id="galeri">
-      <div class="section-head reveal">
-        <p class="eyebrow">01 — Galeri</p>
-        <h2>Seçilmiş kareler</h2>
-      </div>
-      <div class="filters reveal" id="filters" role="tablist"></div>
-      <div class="gallery" id="gallery"></div>
-      <div class="empty reveal" id="emptyState" hidden>
-        <div class="empty-frames"><span></span><span></span><span></span></div>
-        <p>Galeri yakında dolacak.</p>
-        <small>İlk fotoğraflar yolda.</small>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="section about" id="hakkimda">
-      <div class="about-media reveal">
-        <div class="portrait" id="portrait"><span data-initials>AE</span></div>
-      </div>
-      <div class="about-text reveal">
-        <p class="eyebrow">02 — Hakkımda</p>
-        <h2 data-name>Arda Ekinci</h2>
-        <div class="prose" id="about"></div>
-        <dl class="facts">
-          <div><dt>Yaşadığım yer</dt><dd data-location>Türkiye</dd></div>
-          <div><dt>Kare</dt><dd id="photoCount">0</dd></div>
-          <div id="countryFact" hidden><dt>Ülke</dt><dd id="countryCount">0</dd></div>
-        </dl>
-      </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="section contact" id="iletisim">
-      <p class="eyebrow reveal">03 — İletişim</p>
-      <h2 class="contact-title reveal">Bir fikrin mi var?<br><em>Yaz, konuşalım.</em></h2>
-      <a class="contact-mail reveal" id="mailLink" hidden></a>
-      <div class="socials reveal" id="socials"></div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <span>© <span id="year"></span> <span data-name>Arda Ekinci</span></span>
-    <a href="#top">Başa dön ↑</a>
-  </footer>
-
-  <!-- LIGHTBOX -->
-  <div class="lightbox" id="lightbox" hidden aria-modal="true" role="dialog">
-    <button class="lb-close" data-lb="close" aria-label="Kapat">✕</button>
-    <button class="lb-nav lb-prev" data-lb="prev" aria-label="Önceki">‹</button>
-    <figure class="lb-figure">
-      <img id="lbImg" alt="">
-      <figcaption>
-        <strong id="lbTitle"></strong>
-        <span id="lbCaption"></span>
-        <em class="lb-meta" id="lbMeta" hidden></em>
-        <small id="lbCount"></small>
-      </figcaption>
-    </figure>
-    <button class="lb-nav lb-next" data-lb="next" aria-label="Sonraki">›</button>
+  <div class="intro" id="intro" aria-hidden="true">
+    <span class="intro-label">Anılar yükleniyor</span>
+    <span class="intro-skip">Geçmek için dokun</span>
+    <div class="intro-frame"><div class="intro-mono">AE</div></div>
+    <div class="intro-name"><span class="line"></span><span class="line"><em></em></span></div>
+    <div class="intro-count"><span>0</span><small>%</small></div>
+    <div class="intro-bar"></div>
   </div>
 
-  <script src="assets/js/site.js"></script>
+  <header class="top" id="top">
+    <a class="top-name" href="#/" aria-label="Ana sayfa"><i></i><span data-sitename>Arda Ekinci</span></a>
+    <nav class="top-links" aria-label="Ana menü">
+      <a href="#/anilar" data-nav="anilar">Anılar</a>
+      <a href="#/koleksiyonlar" data-nav="koleksiyonlar">Koleksiyonlar</a>
+      <a href="#/hakkimda" data-nav="hakkimda">Hakkımda</a>
+    </nav>
+    <button class="top-menu" id="menuBtn" aria-expanded="false" aria-controls="menu">Menü <span class="burger"></span></button>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu-links" id="menuLinks"></nav>
+    <div class="menu-foot" id="menuFoot"></div>
+    <div class="menu-preview" id="menuPreview"></div>
+  </div>
+
+  <main id="view">
+    <noscript><p style="padding:120px 24px;text-align:center">Bu siteyi görmek için tarayıcında JavaScript açık olmalı.</p></noscript>
+  </main>
+
+  <div class="curtain" id="curtain"><span class="curtain-title" id="curtainTitle"></span></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cur-ring" aria-hidden="true"><span></span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/vendor/gsap.min.js?v=3.15.1" defer></script>
+  <script src="assets/vendor/ScrollTrigger.min.js?v=3.15.1" defer></script>
+  <script src="assets/vendor/d3-array.min.js?v=3.2.4" defer></script>
+  <script src="assets/vendor/d3-geo.min.js?v=3.1.1" defer></script>
+  <script src="assets/vendor/topojson-client.min.js?v=3.1.0" defer></script>
+  <script src="assets/js/core.js?v=3" defer></script>
+  <script src="assets/js/globe.js?v=3" defer></script>
+  <script src="assets/js/overlays.js?v=3" defer></script>
+  <script src="assets/js/home.js?v=3" defer></script>
+  <script src="assets/js/pages.js?v=3" defer></script>
+  <script src="assets/js/shell.js?v=3" defer></script>
 </body>
 </html>
