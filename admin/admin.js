@@ -39,7 +39,6 @@
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: opts.raw ? "application/vnd.github.raw+json" : "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
         ...(opts.body ? { "Content-Type": "application/json" } : {})
       },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
@@ -151,7 +150,7 @@
     e.preventDefault();
     const btn = e.submitter || $("#loginForm button");
     btn.disabled = true;
-    token = $("#tokenInput").value.trim();
+    token = $("#tokenInput").value.replace(/\s+/g, "");
     store.del("ae_token");
     store.set("ae_token", token, $("#remember").checked);
     $("#boot").hidden = false;
