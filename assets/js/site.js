@@ -23,7 +23,7 @@
   let visible = [];
   let current = 0;
 
-  const getJSON = url => fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+  const getJSON = url => fetch(`${url}?v=${Date.now()}`, { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).catch(() => null);
 
   async function init() {
     $("#year").textContent = new Date().getFullYear();
