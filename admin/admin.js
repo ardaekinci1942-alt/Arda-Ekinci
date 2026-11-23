@@ -26,7 +26,7 @@
     photos: [],
     origSite: "",
     origPhotos: [],
-    staged: new Map(),   // path -> { b64, url }
+    staged: new Map(),   // path -> { blob, url }
     deletes: new Set(),  // remote paths to remove
     preview: new Map(),  // path -> object URL (survives publish until reload)
     busy: false
@@ -71,13 +71,18 @@
     const ref = await gh(`${R()}/git/ref/heads/${b}`);
     const base = await gh(`${R()}/git/commits/${ref.object.sha}`);
     const tree = [];
-    const binaries = files.filter(f => f.b64);
-    let done = 0;
-    for (const f of binaries) {
-      const blob = await gh(`${R()}/git/blobs`, { method: "POST", body: { content: f.b64, encoding: "base64" } });
-      tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
-      progress(++done / (binaries.length + 2), `Dosyalar gönderiliyor… ${done}/${binaries.length}`);
-    }
+    const binaries = files.filter(f => f.blob);
+    let done = 0, next = 0;
+    progress(0.02, `Fotoğraflar gönderiliyor… 0 / ${binaries.length}`);
+    const worker = async () => {
+      while (next < binaries.length) {
+        const f = binaries[next++];
+        const blob = await gh(`${R()}/git/blobs`, { method: "POST", body: { content: await toB64(f.blob), encoding: "base64" } });
+        tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
+        progress(++done / (binaries.length + 2), `Fotoğraflar gönderiliyor… ${done} / ${binaries.length}`);
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
     files.filter(f => f.text != null).forEach(f => tree.push({ path: f.path, mode: "100644", type: "blob", content: f.text }));
     deletes.forEach(p => tree.push({ path: p, mode: "100644", type: "blob", sha: null }));
     const newTree = await gh(`${R()}/git/trees`, { method: "POST", body: { base_tree: base.tree.sha, tree } });
@@ -264,20 +269,20 @@
   }
 
   /* ================= image processing ================= */
-  async function decode(file) {
-    if (window.createImageBitmap) {
-      try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch {}
-    }
+  // Decode with an <img> element: lighter on iPhone memory than a full-size bitmap,
+  // and it honours EXIF orientation.
+  function decode(file) {
     return new Promise((res, rej) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
-      img.onload = () => { URL.revokeObjectURL(url); res(img); };
-      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("decode")); };
+      const done = ok => { URL.revokeObjectURL(url); ok ? res(img) : rej(new Error("decode")); };
+      img.onload = () => done(true);
+      img.onerror = () => done(false);
       img.src = url;
     });
   }
   async function resize(src, max, q) {
-    const sw = src.width, sh = src.height;
+    const sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
     const s = Math.min(1, max / Math.max(sw, sh));
     const w = Math.round(sw * s), h = Math.round(sh * s);
     const c = document.createElement("canvas");
@@ -288,8 +293,10 @@
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(src, 0, 0, w, h);
     const blob = await new Promise(r => c.toBlob(r, "image/jpeg", q));
-    return { blob, w, h };
+    return { blob, w, h, canvas: c };
   }
+  const freeCanvas = c => { if (c) { c.width = 0; c.height = 0; } };
+  const tick = () => new Promise(r => setTimeout(r, 30));
   const toB64 = blob => new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(String(r.result).split(",")[1]);
@@ -299,28 +306,35 @@
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const niceTitle = name => name.replace(/\.[^.]+$/, "").replace(/^(IMG|DSC|DSCF|PXL|P)[_-]?\d+.*$/i, "").replace(/[_-]+/g, " ").trim();
 
-  async function stage(path, blob) {
-    S.staged.set(path, { b64: await toB64(blob), url: URL.createObjectURL(blob) });
+  function stage(path, blob) {
+    S.staged.set(path, { blob, url: URL.createObjectURL(blob) });
   }
 
   async function addFiles(files) {
     files = [...files].filter(f => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
     if (!files.length) return;
     let ok = 0;
+    $("#drop").scrollIntoView({ behavior: "smooth", block: "start" });
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      progress(i / files.length, `Hazırlanıyor: ${f.name} (${i + 1}/${files.length})`);
+      progress(i / files.length, `Fotoğraflar hazırlanıyor… ${i + 1} / ${files.length}`);
+      await tick();
       try {
-        const bmp = await decode(f);
-        const main = await resize(bmp, MAIN_MAX, MAIN_Q);
-        const thumb = await resize(bmp, THUMB_MAX, THUMB_Q);
-        if (bmp.close) bmp.close();
+        let img = await decode(f);
+        const main = await resize(img, MAIN_MAX, MAIN_Q);
+        img.src = "";
+        img = null;
+        const thumb = await resize(main.canvas, THUMB_MAX, THUMB_Q);
+        freeCanvas(main.canvas);
+        freeCanvas(thumb.canvas);
         const id = uid();
         const p = { id, src: `photos/${id}.jpg`, thumb: `photos/thumbs/${id}.jpg`, w: main.w, h: main.h, title: niceTitle(f.name), caption: "", category: "", featured: false, date: new Date().toISOString().slice(0, 10) };
-        await stage(p.src, main.blob);
-        await stage(p.thumb, thumb.blob);
+        stage(p.src, main.blob);
+        stage(p.thumb, thumb.blob);
         S.photos.unshift(p);
         ok++;
+        renderGrid();
+        updateBar();
       } catch {
         toast(`“${f.name}” açılamadı. iPhone HEIC ise: Ayarlar → Kamera → Formatlar → “En Uyumlu”.`, "err");
       }
@@ -500,7 +514,7 @@
       if (JSON.stringify(S.site) !== S.origSite) bits.push("profil güncellendi");
       const msg = `Site: ${bits.join(", ") || "düzenlemeler"}`;
 
-      const files = [...S.staged].map(([path, f]) => ({ path, b64: f.b64 }));
+      const files = [...S.staged].map(([path, f]) => ({ path, blob: f.blob }));
       files.push({ path: "data/photos.json", text: JSON.stringify({ photos: S.photos }, null, 2) + "\n" });
       files.push({ path: "data/site.json", text: JSON.stringify(S.site, null, 2) + "\n" });
       await commit(msg, files, [...S.deletes]);
@@ -512,7 +526,7 @@
       S.origSite = JSON.stringify(S.site);
       renderGrid();
       updateBar();
-      toast("Yayınlandı! Site 1–2 dakika içinde güncellenecek.", "ok");
+      toast("Yayınlandı! Fotoğraflar 1–2 dakika içinde sitede görünür. Görmezsen sayfayı yenile.", "ok");
     } catch (e) {
       if (e.status === 403 || e.status === 404) toast("Yazma izni yok. Anahtarında “Contents: Read and write” izni açık olmalı.", "err");
       else toast(`Yayınlanamadı: ${e.message}`, "err");
