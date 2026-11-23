@@ -169,7 +169,7 @@ input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
 .modal::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
 .modal-body { display: grid; grid-template-columns: 1.1fr 1fr; }
 .modal-body > img { width: 100%; height: 100%; max-height: 80vh; object-fit: contain; background: #000; }
-.modal-fields { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.modal-fields { overflow-y: auto; max-height: calc(100vh - 32px); padding: 24px; display: flex; flex-direction: column; gap: 14px; }
 .modal-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
 .modal-actions span { flex: 1; }
 

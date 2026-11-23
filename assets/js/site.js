@@ -20,6 +20,13 @@
   const SOCIAL_LABEL = { instagram: "Instagram", twitter: "X", youtube: "YouTube", linkedin: "LinkedIn" };
 
   let photos = [];
+  const where = p => [p.place, p.country].filter(Boolean).join(", ");
+  const fmtDate = d => {
+    if (!d) return "";
+    const t = new Date(`${d}T12:00:00`);
+    return isNaN(t) ? "" : t.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  };
+  const tagsOf = p => [(p.category || "").trim(), (p.country || "").trim()].filter(Boolean);
   let visible = [];
   let current = 0;
 
@@ -67,6 +74,11 @@
       .map(k => `<a href="${esc(SOCIAL_URL[k](s[k].trim()))}" target="_blank" rel="noopener">${ICONS[k]}${SOCIAL_LABEL[k]}</a>`)
       .join("");
     $("#photoCount").textContent = photos.length;
+    const nCountries = new Set(photos.map(p => p.country).filter(Boolean)).size;
+    if (nCountries) {
+      $("#countryCount").textContent = nCountries;
+      $("#countryFact").hidden = false;
+    }
   }
 
   /* ---------- hero slideshow ---------- */
@@ -88,7 +100,7 @@
 
   /* ---------- filters ---------- */
   function renderFilters() {
-    const cats = [...new Set(photos.map(p => (p.category || "").trim()).filter(Boolean))];
+    const cats = [...new Set(photos.flatMap(tagsOf))];
     if (cats.length < 2) return;
     const box = $("#filters");
     box.innerHTML = ["Tümü", ...cats]
@@ -99,7 +111,7 @@
       if (!b) return;
       $$(".chip", box).forEach(x => x.classList.toggle("active", x === b));
       const cat = b.dataset.cat;
-      $$(".tile").forEach(t => t.classList.toggle("hide", !!cat && t.dataset.cat !== cat));
+      $$(".tile").forEach(t => t.classList.toggle("hide", !!cat && !JSON.parse(t.dataset.tags).includes(cat)));
     });
   }
 
@@ -113,10 +125,10 @@
     g.innerHTML = photos
       .map((p, i) => {
         const r = p.w && p.h ? (p.w / p.h).toFixed(4) : 1.5;
-        return `<figure class="tile" style="--r:${r}" data-i="${i}" data-cat="${esc((p.category || "").trim())}">
+        return `<figure class="tile" style="--r:${r}" data-i="${i}" data-tags="${esc(JSON.stringify(tagsOf(p)))}">
           <i></i>
           <img src="${esc(p.thumb || p.src)}" alt="${esc(p.title || "")}" loading="lazy" decoding="async">
-          ${p.title || p.category ? `<figcaption>${p.category ? `<small>${esc(p.category)}</small>` : ""}${esc(p.title || "")}</figcaption>` : ""}
+          ${p.title || where(p) || p.category ? `<figcaption>${where(p) || p.category ? `<small>${esc(where(p) || p.category)}</small>` : ""}${esc(p.title || "")}</figcaption>` : ""}
         </figure>`;
       })
       .join("");
@@ -153,6 +165,9 @@
     lbImg.alt = p.title || "";
     $("#lbTitle").textContent = p.title || "";
     $("#lbCaption").textContent = p.caption || "";
+    const meta = [where(p) && `📍 ${where(p)}`, fmtDate(p.taken)].filter(Boolean).join("  ·  ");
+    $("#lbMeta").textContent = meta;
+    $("#lbMeta").hidden = !meta;
     $("#lbCount").textContent = `${current + 1} / ${visible.length}`;
     [1, -1].forEach(d => {
       const n = photos[visible[(current + d + visible.length) % visible.length]];
