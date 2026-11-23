@@ -144,6 +144,11 @@
         <label>Başlık<input name="title"></label>
         <label>Kategori / albüm<input name="category" list="catList" placeholder="ör. Seyahat, Portre, Doğa"></label>
         <label>Açıklama<textarea name="caption" rows="3"></textarea></label>
+        <div class="row">
+          <label>Şehir / yer<input name="place" placeholder="ör. Paris"></label>
+          <label>Ülke<input name="country" list="countryList" placeholder="ör. Fransa"></label>
+        </div>
+        <label>Çekim tarihi<input name="taken" type="date"></label>
         <label class="check"><input type="checkbox" name="featured"> ★ Ana sayfa kapağında göster</label>
         <div class="modal-actions">
           <button class="btn link danger" value="delete" type="submit">Sil</button>
@@ -155,6 +160,7 @@
     </form>
   </dialog>
   <datalist id="catList"></datalist>
+  <datalist id="countryList"></datalist>
 
   <div class="toasts" id="toasts"></div>
   <div class="boot" id="boot"><div class="spinner"></div></div>
