@@ -2,26 +2,27 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b0a09">
   <title>Yönetim Paneli</title>
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Inter:wght@300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body>
-
-  <!-- LOGIN -->
+  <!-- GİRİŞ -->
   <section class="login" id="loginView" hidden>
     <div class="login-card">
       <div class="logo">AE</div>
       <h1>Yönetim Paneli</h1>
-      <p class="muted">Fotoğraf yüklemek ve siteni düzenlemek için GitHub anahtarınla giriş yap.</p>
-      <form id="loginForm">
-        <label>GitHub erişim anahtarı (token)
-          <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="current-password" required>
+      <p class="muted">Anı eklemek ve siteni düzenlemek için GitHub anahtarınla giriş yap.</p>
+      <form id="loginForm" autocomplete="on">
+        <label>GitHub erişim anahtarı
+          <input type="password" id="tokenInput" placeholder="github_pat_… veya ghp_…" autocomplete="current-password" required>
         </label>
         <label class="check"><input type="checkbox" id="remember" checked> Bu cihazda beni hatırla</label>
         <button class="btn primary" type="submit">Giriş yap</button>
@@ -30,141 +31,116 @@
       <details class="help">
         <summary>Anahtarı nasıl alırım?</summary>
         <ol>
-          <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> adresini aç.</li>
-          <li>İsim: <code>ardaekinci-admin</code>, süre: istediğin kadar (ör. 1 yıl).</li>
+          <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> sayfasını aç.</li>
+          <li>İsim ver (ör. <code>site-admin</code>), süre seç.</li>
           <li><b>Repository access</b> → <b>Only select repositories</b> → <code>Arda-Ekinci</code>.</li>
-          <li><b>Permissions → Repository permissions → Contents</b> → <b>Read and write</b>.</li>
-          <li><b>Generate token</b>'a bas, çıkan kodu buraya yapıştır.</li>
+          <li><b>Permissions</b> → <b>Contents</b> → <b>Read and write</b>.</li>
+          <li><b>Generate token</b>'a bas, çıkan kodu kopyala ve buraya yapıştır.</li>
         </ol>
-        <p class="muted">Bu anahtar yalnızca senin repona erişir. Kimseyle paylaşma.</p>
+        <p class="muted">Bu kod sitenin anahtarıdır, kimseyle paylaşma.</p>
       </details>
     </div>
   </section>
 
-  <!-- APP -->
+  <!-- UYGULAMA -->
   <div class="app" id="appView" hidden>
-    <header class="topbar">
-      <div class="tb-left">
-        <div class="logo sm">AE</div>
-        <nav class="tabs" id="tabs">
-          <button data-tab="photos" class="active">Fotoğraflar</button>
-          <button data-tab="profile">Profil</button>
-          <button data-tab="settings">Ayarlar</button>
-        </nav>
-      </div>
-      <div class="tb-right">
-        <a class="btn ghost" href="../" target="_blank" rel="noopener">Siteyi gör ↗</a>
-      </div>
+    <aside class="side">
+      <div class="side-brand"><div class="logo sm">AE</div><div><b>Yönetim</b><small id="sideRepo"></small></div></div>
+      <nav class="nav" id="nav"></nav>
+      <a class="side-site" href="../" target="_blank" rel="noopener">Siteyi aç ↗</a>
+    </aside>
+    <header class="mtop">
+      <div class="logo sm">AE</div>
+      <b id="mtopTitle">Anılar</b>
+      <a class="ibtn" href="../" target="_blank" rel="noopener" aria-label="Siteyi aç">↗</a>
     </header>
 
-    <main class="content">
-      <!-- PHOTOS -->
-      <section class="tab" data-panel="photos">
-        <div class="head">
-          <div>
-            <h2>Fotoğraflar</h2>
-            <p class="muted"><span id="photoTotal">0</span> fotoğraf · ★ işaretlilerin ana sayfada büyük görünür.</p>
+    <main class="main" id="main">
+      <!-- ANILAR -->
+      <section class="panel" data-panel="posts">
+        <div class="phead">
+          <div><h2>Anılar</h2><p class="muted" id="postStats"></p></div>
+          <div class="phead-act">
+            <label class="btn primary"><input type="file" id="fileInput" accept="image/*" multiple hidden>＋ Fotoğraf</label>
+            <button class="btn" type="button" id="noteBtn">✎ Not</button>
+            <button class="btn ghost" type="button" id="selectBtn">Seç</button>
           </div>
         </div>
-
-        <label class="drop" id="drop">
-          <input type="file" id="fileInput" accept="image/*" multiple hidden>
-          <div class="drop-inner">
-            <div class="drop-icon">＋</div>
-            <strong>Fotoğrafları buraya sürükle</strong>
-            <span>ya da seçmek için tıkla · JPG, PNG, WEBP</span>
-          </div>
-        </label>
-        <div class="progress" id="procBox" hidden><div><span id="procBar"></span></div><small id="procText"></small></div>
-
-        <div class="grid" id="grid"></div>
-        <p class="muted center" id="gridEmpty" hidden>Henüz fotoğraf yok. Yukarıdan yüklemeye başla.</p>
+        <div class="toolbar">
+          <label class="search"><input type="search" id="postSearch" placeholder="Ara…" autocomplete="off"></label>
+          <select id="postFilter" aria-label="Filtre">
+            <option value="all">Tümü</option>
+            <option value="photo">Fotoğraflar</option>
+            <option value="note">Notlar</option>
+            <option value="new">Yeni eklenenler</option>
+            <option value="hidden">Gizliler</option>
+            <option value="pinned">Sabitlenenler</option>
+            <option value="featured">Kapaktakiler ★</option>
+            <option value="noalbum">Albümsüz</option>
+            <option value="noplace">Konumsuz</option>
+            <option value="nodate">Tarihsiz</option>
+          </select>
+        </div>
+        <div class="drop" id="drop"><b>Fotoğrafları buraya bırak</b><span>ya da yukarıdan “＋ Fotoğraf”a bas · bir seferde en fazla 30 öneririm</span></div>
+        <div class="pgrid" id="pgrid"></div>
+        <p class="empty" id="pEmpty" hidden></p>
       </section>
 
-      <!-- PROFILE -->
-      <section class="tab" data-panel="profile" hidden>
-        <div class="head"><div><h2>Profil</h2><p class="muted">Sitedeki yazılar ve iletişim bilgileri.</p></div></div>
-        <div class="profile">
-          <div class="portrait-edit">
-            <div class="portrait" id="portraitPrev"><span>Portre</span></div>
-            <label class="btn ghost">Portre yükle<input type="file" id="portraitInput" accept="image/*" hidden></label>
-            <button class="btn link danger" id="portraitRemove" type="button">Kaldır</button>
-          </div>
-          <form class="form" id="profileForm">
-            <label>İsim<input name="name" required></label>
-            <label>Slogan (ana sayfada isminin altında)<input name="tagline"></label>
-            <label>Hakkımda<textarea name="about" rows="8" placeholder="Paragrafları boş bir satırla ayır."></textarea></label>
-            <label>Konum<input name="location" placeholder="İstanbul, Türkiye"></label>
-            <label>E-posta<input name="email" type="email" placeholder="merhaba@ardaekinci.com"></label>
-            <div class="row">
-              <label>Instagram<input name="instagram" placeholder="kullaniciadi"></label>
-              <label>X / Twitter<input name="twitter" placeholder="kullaniciadi"></label>
-            </div>
-            <div class="row">
-              <label>YouTube<input name="youtube" placeholder="kanaladi"></label>
-              <label>LinkedIn<input name="linkedin" placeholder="kullaniciadi"></label>
-            </div>
-          </form>
+      <!-- ALBÜMLER -->
+      <section class="panel" data-panel="albums" hidden>
+        <div class="phead">
+          <div><h2>Albümler</h2><p class="muted">Ülke ve yıl koleksiyonları sitede kendiliğinden oluşur. Albümleri sen düzenlersin.</p></div>
+          <div class="phead-act"><button class="btn primary" type="button" id="newAlbumBtn">＋ Yeni albüm</button></div>
         </div>
+        <div class="alist" id="alist"></div>
       </section>
 
-      <!-- SETTINGS -->
-      <section class="tab" data-panel="settings" hidden>
-        <div class="head"><div><h2>Ayarlar</h2><p class="muted">Çoğu zaman burayı değiştirmen gerekmez.</p></div></div>
-        <form class="form narrow" id="settingsForm">
-          <label>GitHub kullanıcı adı<input name="owner"></label>
-          <label>Repo adı<input name="repo"></label>
-          <label>Yayın dalı (branch)<input name="branch"></label>
-          <button class="btn" type="submit">Kaydet ve yeniden yükle</button>
-        </form>
-        <div class="note">
-          <b>Nasıl çalışır?</b> “Yayınla”ya bastığında değişiklikler GitHub repona kaydedilir;
-          GitHub Pages siteyi yaklaşık <b>1–2 dakika</b> içinde günceller.
-        </div>
-        <button class="btn danger" id="logoutBtn">Çıkış yap</button>
+      <!-- PROFİL -->
+      <section class="panel" data-panel="profile" hidden>
+        <div class="phead"><div><h2>Profil</h2><p class="muted">Sitede görünen isim, yazılar ve iletişim bilgileri.</p></div></div>
+        <div class="form" id="profileForm"></div>
+      </section>
+
+      <!-- CV -->
+      <section class="panel" data-panel="cv" hidden>
+        <div class="phead"><div><h2>CV & iş hayatı</h2><p class="muted">Doldurduğun bölümler “Hakkımda” sayfasında görünür, boş bıraktıkların gizlenir.</p></div></div>
+        <div class="form" id="cvForm"></div>
+      </section>
+
+      <!-- AYARLAR -->
+      <section class="panel" data-panel="settings" hidden>
+        <div class="phead"><div><h2>Ayarlar</h2><p class="muted">Görünüm, ana sayfa bölümleri ve bağlantı ayarları.</p></div></div>
+        <div class="form" id="settingsForm"></div>
       </section>
     </main>
 
-    <!-- publish bar -->
-    <div class="publish" id="publishBar" hidden>
-      <span><b id="changeCount">0</b> kaydedilmemiş değişiklik</span>
-      <div>
-        <button class="btn ghost" id="discardBtn">Vazgeç</button>
-        <button class="btn primary" id="publishBtn">Yayınla</button>
-      </div>
+    <nav class="tabbar" id="tabbar"></nav>
+
+    <div class="bulk" id="bulk" hidden>
+      <div class="bulk-top"><b id="bulkCount">0 seçili</b><button type="button" class="lbtn" id="bulkAll">Tümünü seç</button><button type="button" class="lbtn" id="bulkDone">Bitti</button></div>
+      <div class="bulk-acts" id="bulkActs"></div>
+    </div>
+
+    <div class="pub" id="pub" hidden>
+      <div><b id="pubCount">0</b> <span id="pubText">kaydedilmemiş değişiklik</span></div>
+      <div class="pub-acts"><button type="button" class="btn ghost" id="discardBtn">Vazgeç</button><button type="button" class="btn primary" id="publishBtn">Yayınla</button></div>
     </div>
   </div>
 
-  <!-- edit modal -->
-  <dialog class="modal" id="editModal">
-    <form method="dialog" class="modal-body" id="editForm">
-      <img id="editImg" alt="">
-      <div class="modal-fields">
-        <h3>Fotoğrafı düzenle</h3>
-        <label>Başlık<input name="title"></label>
-        <label>Kategori / albüm<input name="category" list="catList" placeholder="ör. Seyahat, Portre, Doğa"></label>
-        <label>Açıklama<textarea name="caption" rows="3"></textarea></label>
-        <div class="row">
-          <label>Şehir / yer<input name="place" placeholder="ör. Paris"></label>
-          <label>Ülke<input name="country" list="countryList" placeholder="ör. Fransa"></label>
-        </div>
-        <label>Çekim tarihi<input name="taken" type="date"></label>
-        <label class="check"><input type="checkbox" name="featured"> ★ Ana sayfa kapağında göster</label>
-        <div class="modal-actions">
-          <button class="btn link danger" value="delete" type="submit">Sil</button>
-          <span></span>
-          <button class="btn ghost" value="cancel" type="submit" formnovalidate>İptal</button>
-          <button class="btn primary" value="save" type="submit">Tamam</button>
-        </div>
-      </div>
-    </form>
-  </dialog>
-  <datalist id="catList"></datalist>
-  <datalist id="countryList"></datalist>
-
+  <div id="sheets"></div>
+  <div class="progress-ov" id="progressOv" hidden>
+    <div class="progress-card">
+      <div class="spinner"></div>
+      <b id="progTitle">Yayınlanıyor…</b>
+      <div class="bar"><span id="progBar"></span></div>
+      <p id="progText" class="muted"></p>
+      <small class="muted">Bu sırada sayfayı kapatma.</small>
+    </div>
+  </div>
   <div class="toasts" id="toasts"></div>
   <div class="boot" id="boot"><div class="spinner"></div></div>
 
-  <script src="admin.js"></script>
+  <script src="../assets/js/core.js?v=3"></script>
+  <script src="admin.js?v=3"></script>
 </body>
 </html>

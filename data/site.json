@@ -1,12 +1,54 @@
 {
   "name": "Arda Ekinci",
-  "tagline": "Anları kareye, kareleri hikâyeye dönüştürüyorum.",
-  "about": "Merhaba, ben Arda.\n\nBu sayfa; çektiğim fotoğrafların, gezdiğim yerlerin ve aklımda kalan anların küçük bir arşivi. Hakkında bölümünü yönetim panelinden dilediğin gibi değiştirebilirsin.",
+  "handle": "",
+  "tagline": "Yolculuklardan, gündelik hayattan ve sevdiğim insanlardan kareler.",
+  "bio": "Gezdiğim yerler, tanıdığım insanlar ve unutmak istemediğim *anlar.* Hepsi burada, bir arada.",
+  "about": "Merhaba, ben Arda.\n\nBu site benim küçük dijital hafızam: yolculuklardan kareler, gündelik anlar ve hayatıma dair notlar. Zamanla doldukça büyüyen, bana ait bir arşiv.",
+  "now": "",
   "location": "Türkiye",
+  "timezone": "Europe/Istanbul",
   "email": "ardaekinci1942@gmail.com",
-  "instagram": "ardaekinci2",
-  "twitter": "",
-  "youtube": "Arda Ekinci",
-  "linkedin": "",
-  "portrait": ""
+  "socials": {
+    "instagram": "ardaekinci2",
+    "youtube": "Arda Ekinci"
+  },
+  "avatar": "",
+  "portrait": "",
+  "facts": [],
+  "words": [
+    "yolculuklar",
+    "insanlar",
+    "gündelik anlar",
+    "şehirler",
+    "hatıralar"
+  ],
+  "cv": {
+    "experience": [],
+    "education": [],
+    "skills": [],
+    "languages": [],
+    "projects": [],
+    "pdf": ""
+  },
+  "theme": {
+    "accent": "#e8b67a",
+    "intro": true,
+    "marquee": [
+      "Anılar",
+      "Yolculuklar",
+      "İnsanlar",
+      "Şehirler",
+      "Gündelik",
+      "Hayat"
+    ],
+    "sections": {
+      "latest": true,
+      "stories": true,
+      "stats": true,
+      "globe": true,
+      "notes": true,
+      "about": true,
+      "contact": true
+    }
+  }
 }

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Sayfa bulunamadı — Arda Ekinci</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0a09; color: #f4eee6; font-family: Georgia, "Times New Roman", serif; }
+    body { display: grid; place-items: center; text-align: center; padding: 24px; box-sizing: border-box; }
+    small { font: 500 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #e8b67a; }
+    h1 { font-weight: 300; font-size: clamp(64px, 16vw, 180px); line-height: .9; letter-spacing: -.05em; margin: 18px 0 28px; }
+    h1 em { color: #e8b67a; }
+    p { font: 16px/1.6 system-ui, -apple-system, sans-serif; color: #9d9488; margin: 0 0 30px; }
+    a { display: inline-block; padding: 14px 26px; border-radius: 999px; background: #e8b67a; color: #1a130b; font: 500 15px system-ui, -apple-system, sans-serif; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div>
+    <small>Hata 404</small>
+    <h1>Kayıp <em>kare</em></h1>
+    <p>Aradığın sayfa burada değil. Belki başka bir anıdadır.</p>
+    <a id="home" href="/">Ana sayfaya dön →</a>
+  </div>
+  <script>
+    (function () {
+      var seg = location.pathname.split("/").filter(Boolean)[0];
+      var base = /\.github\.io$/.test(location.hostname) && seg ? "/" + seg + "/" : "/";
+      document.getElementById("home").setAttribute("href", base);
+    })();
+  </script>
+</body>
+</html>
