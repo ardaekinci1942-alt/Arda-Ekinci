@@ -27,7 +27,7 @@
       "place": "",
       "country": "",
       "taken": "",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -42,7 +42,7 @@
       "place": "İstanbul",
       "country": "Türkiye",
       "taken": "2023-07-23",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -72,7 +72,7 @@
       "place": "Edirne",
       "country": "Türkiye",
       "taken": "2023-10-31",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -177,7 +177,7 @@
       "place": "Venedik",
       "country": "İtalya",
       "taken": "2025-01-31",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -222,7 +222,7 @@
       "place": "Edirne",
       "country": "Türkiye",
       "taken": "2025-05-02",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -237,7 +237,7 @@
       "place": "Paris",
       "country": "Fransa",
       "taken": "2025-09-19",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -252,7 +252,7 @@
       "place": "Paris",
       "country": "Fransa",
       "taken": "2025-09-20",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -312,7 +312,7 @@
       "place": "Brüksel Başkent Bölgesi",
       "country": "Belçika",
       "taken": "2025-09-22",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -342,7 +342,7 @@
       "place": "",
       "country": "",
       "taken": "",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
@@ -357,7 +357,7 @@
       "place": "Bratislava",
       "country": "Slovakya",
       "taken": "2026-11-07",
-      "featured": false,
+      "featured": true,
       "date": "2026-11-23"
     },
     {
