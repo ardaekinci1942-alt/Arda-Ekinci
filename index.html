@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arda Ekinci</title>
+  <meta name="description" content="Arda Ekinci — fotoğraflar, hikâyeler ve anlar.">
+  <meta property="og:title" content="Arda Ekinci">
+  <meta property="og:description" content="Fotoğraflar, hikâyeler ve anlar.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ardaekinci.com/">
+  <meta name="theme-color" content="#0e0d0c">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="nav" id="nav">
+    <a href="#top" class="brand" data-name>Arda Ekinci</a>
+    <nav class="nav-links">
+      <a href="#galeri">Galeri</a>
+      <a href="#hakkimda">Hakkımda</a>
+      <a href="#iletisim">İletişim</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="top">
+      <div class="hero-slides" id="heroSlides"></div>
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow reveal">Portfolyo · <span data-location>Türkiye</span></p>
+        <h1 class="hero-title reveal" data-name-split>Arda <em>Ekinci</em></h1>
+        <p class="hero-tagline reveal" data-tagline></p>
+        <a href="#galeri" class="btn reveal">Fotoğraflara göz at <span aria-hidden="true">→</span></a>
+      </div>
+      <a href="#galeri" class="scroll-cue" aria-label="Aşağı kaydır"><span></span></a>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="section" id="galeri">
+      <div class="section-head reveal">
+        <p class="eyebrow">01 — Galeri</p>
+        <h2>Seçilmiş kareler</h2>
+      </div>
+      <div class="filters reveal" id="filters" role="tablist"></div>
+      <div class="gallery" id="gallery"></div>
+      <div class="empty reveal" id="emptyState" hidden>
+        <div class="empty-frames"><span></span><span></span><span></span></div>
+        <p>Galeri yakında dolacak.</p>
+        <small>İlk fotoğraflar yolda.</small>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section about" id="hakkimda">
+      <div class="about-media reveal">
+        <div class="portrait" id="portrait"><span data-initials>AE</span></div>
+      </div>
+      <div class="about-text reveal">
+        <p class="eyebrow">02 — Hakkımda</p>
+        <h2 data-name>Arda Ekinci</h2>
+        <div class="prose" id="about"></div>
+        <dl class="facts">
+          <div><dt>Konum</dt><dd data-location>Türkiye</dd></div>
+          <div><dt>Kare</dt><dd id="photoCount">0</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section contact" id="iletisim">
+      <p class="eyebrow reveal">03 — İletişim</p>
+      <h2 class="contact-title reveal">Bir fikrin mi var?<br><em>Yaz, konuşalım.</em></h2>
+      <a class="contact-mail reveal" id="mailLink" hidden></a>
+      <div class="socials reveal" id="socials"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> <span data-name>Arda Ekinci</span></span>
+    <a href="#top">Başa dön ↑</a>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" hidden aria-modal="true" role="dialog">
+    <button class="lb-close" data-lb="close" aria-label="Kapat">✕</button>
+    <button class="lb-nav lb-prev" data-lb="prev" aria-label="Önceki">‹</button>
+    <figure class="lb-figure">
+      <img id="lbImg" alt="">
+      <figcaption>
+        <strong id="lbTitle"></strong>
+        <span id="lbCaption"></span>
+        <small id="lbCount"></small>
+      </figcaption>
+    </figure>
+    <button class="lb-nav lb-next" data-lb="next" aria-label="Sonraki">›</button>
+  </div>
+
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
