@@ -74,12 +74,14 @@
     if (streakN === 5) { AE.toast("5 beğeni! Teşekkürler ❤️"); AE.faceRain(); streakN = 0; }
   }
 
-  /* kalp patlaması (+ kalp içinde yüz) */
+  /* beğeni efekti: yüz varsa YALNIZCA kalp şeklinde yüz (ayrı kırmızı kalp ve saçılan kalpler yok);
+     yüz yoksa kırmızı kalp + saçılan kalpler */
   AE.heartBurst = (x, y, big) => {
     if (x == null) { x = innerWidth / 2; y = innerHeight / 2; }
-    const face = big ? AE.heartFace() : "";
-    const parts = Array.from({ length: 9 }, (_, i) => `<i style="--a:${i * 40 + (Math.random() * 16 - 8)}deg;--d:${(60 + Math.random() * 50) | 0}px">♥</i>`).join("");
-    const b = AE.el(`<div class="burst${big ? " big" : ""}" style="left:${x}px;top:${y}px" aria-hidden="true">${HEART}${parts}${face ? `<span class="bf">${face}</span>` : ""}</div>`);
+    const face = AE.heartFace();
+    const inner = face ? `<span class="bf">${face}</span>`
+      : HEART + Array.from({ length: 9 }, (_, i) => `<i style="--a:${i * 40 + (Math.random() * 16 - 8)}deg;--d:${(60 + Math.random() * 50) | 0}px">♥</i>`).join("");
+    const b = AE.el(`<div class="burst${big ? " big" : ""}" style="left:${x}px;top:${y}px" aria-hidden="true">${inner}</div>`);
     document.body.appendChild(b);
     setTimeout(() => b.remove(), 1500);
   };

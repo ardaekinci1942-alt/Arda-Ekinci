@@ -19,7 +19,7 @@ Bütün içerik `/admin` panelinden yönetilir.
 Her anının kendine ait bir bağlantısı var (ör. `ardaekinci.com/#/ani/…`), “Paylaş” ile WhatsApp vb. yerlere gönderilebilir.
 
 ### Eğlenceli ve fütüristik kısımlar
-- **Beğeni:** Fotoğrafa çift dokun ya da ♥'ye bas, kalp patlar ve kalp şeklinde yalnızca yüzün fırlar (tam fotoğraf asla görünmez). Hesap gerekmez; toplam sayılar ücretsiz bir sayaç servisinde (abacus.jasoncameron.dev) tutulur, servis kapalıysa sayı gizlenir ama kalp yine çalışır.
+- **Beğeni:** Fotoğrafa çift dokun ya da ♥'ye bas, dokunduğun yerde yalnızca kalp şeklinde yüzün belirir (ayrı kırmızı kalp yok, tam fotoğraf asla görünmez; yüz yüklenmemişse kırmızı kalp çıkar). Hesap gerekmez; toplam sayılar ücretsiz bir sayaç servisinde (abacus.jasoncameron.dev) tutulur, servis kapalıysa sayı gizlenir ama kalp yine çalışır.
 - **Uçan Arda (`#/oyun`):** Arka planı tamamen silinmiş kafanla oynanan mini oyun. Gezdiğin şehirlerin adlarını taşıyan neon kulelerin arasından uç, kalpleri topla; oyunda senin yüzünden başka yüz yok. En iyi skor ziyaretçinin cihazında saklanır.
 - **3B zaman tüneli:** Ana sayfada kaydırdıkça yıllar ve fotoğraflar arasından geçmişten bugüne uçulur.
 - **Aurora ışığı ve vizör:** Masaüstünde girişte fareye tepki veren canlı ışık; giriş fotoğrafında kamera vizörü (koordinat, REC).
