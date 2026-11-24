@@ -24,6 +24,7 @@
       document.body.appendChild(root);
       AE.lock(true);
       $(".vw-close", root).addEventListener("click", () => AE.closeOverlay());
+      AE.dbltap($(".vw-media", root), e => { if (cur && !e.target.closest("button")) AE.like(cur.id, e.clientX, e.clientY); });
       $(".vw-bg", root).addEventListener("click", () => AE.closeOverlay());
       $(".vw-nav.p", root).addEventListener("click", () => step(-1));
       $(".vw-nav.n", root).addEventListener("click", () => step(1));
@@ -85,14 +86,16 @@
             ${post.photos.length > 1 ? `<div>${AE.icon.grid}<span>${post.photos.length} fotoğraf</span></div>` : ""}
           </div>
           ${more.length ? `<div class="vw-more"><h4>${esc(moreLabel)}</h4><div>${more.map(p =>
-            `<a href="#/ani/${encodeURIComponent(p.id)}" data-vw-post="${esc(p.id)}" aria-label="${esc(AE.placeLine(p))}">${AE.img(p.photos[0].thumb, { alt: "" })}</a>`).join("")}</div></div>` : ""}
+            `<a href="#/ani/${encodeURIComponent(p.id)}" data-vw-post="${esc(p.id)}" aria-label="${esc(AE.placeLine(p))}">${AE.img(p.photos[0].sm || p.photos[0].thumb, { alt: "" })}</a>`).join("")}</div></div>` : ""}
         </div>
         <div class="vw-actions">
+          ${AE.likeBtnHTML(post.id)}
           <button type="button" class="btn" data-share="#/ani/${encodeURIComponent(post.id)}" data-title="${esc(post.title || where || "Bir anı")}">${AE.icon.share} Paylaş</button>
           <button type="button" class="icon-btn" data-vw-step="-1" aria-label="Önceki anı">${AE.icon.chevL}</button>
           <button type="button" class="icon-btn" data-vw-step="1" aria-label="Sonraki anı">${AE.icon.chevR}</button>
         </div>`;
       $(".vw-side-body", side).scrollTop = 0;
+      AE.paintLikes(side);
       const l = list(), i = l.indexOf(post.id);
       const prevOk = i > 0, nextOk = i >= 0 && i < l.length - 1;
       $(".vw-nav.p", root).disabled = !prevOk; $(".vw-nav.n", root).disabled = !nextOk;
@@ -213,7 +216,7 @@
               <button type="button" data-act="close" aria-label="Kapat">${AE.icon.close}</button></div>
           </div>
           <div class="sto-tap l"></div><div class="sto-tap r"></div>
-          <div class="sto-foot"><p></p><a href="#/">Anıyı aç</a></div>
+          <div class="sto-foot"><p></p><span class="sto-acts"><button type="button" class="like-btn" data-like="" aria-label="Beğen">${AE.icon.heart}<span class="lc"></span></button><a href="#/">Anıyı aç</a></span></div>
         </div>
       </div>`);
       document.body.appendChild(root);
@@ -301,10 +304,12 @@
       const abs = new URL(x.ph.src, location.href).href;
       if (img.src === abs && img.complete) ready(); else img.src = x.ph.src;
       setTimeout(() => { if (my === token && root && root.classList.contains("wait")) ready(); }, 6000);
-      $(".sto-bg", root).style.backgroundImage = `url("${String(x.ph.thumb).replace(/"/g, "%22")}")`;
+      $(".sto-bg", root).style.backgroundImage = `url("${String(x.ph.sm || x.ph.thumb).replace(/"/g, "%22")}")`;
       const p = x.post;
       const where = AE.placeLine(p);
       $(".sto-foot p", root).innerHTML = `${esc(p.title || where || "")}${p.date ? `<small>${esc(AE.fmtDate(p.date))}</small>` : ""}`;
+      const lb = $(".sto-foot .like-btn", root);
+      if (lb) { lb.dataset.like = p.id; AE.paintLikes(root); }
       $("time", root).textContent = AE.fmtDate(p.date, true);
       const nx = items[idx + 1];
       if (nx) AE.preload(nx.ph.src);
@@ -337,7 +342,7 @@
       items = c.photos.slice().reverse().slice(0, 80);
       root.style.setProperty("--dur", `${DUR}s`);
       $(".sto-bars", root).innerHTML = items.map(() => "<span><i></i></span>").join("");
-      $(".sto-head .av", root).innerHTML = c.coverPhoto ? AE.img(c.coverPhoto.thumb, { alt: "" }) : "";
+      $(".sto-head .av", root).innerHTML = c.coverPhoto ? AE.img(c.coverPhoto.sm || c.coverPhoto.thumb, { alt: "" }) : "";
       $(".sto-head b", root).textContent = `${c.flag ? c.flag + " " : ""}${c.title}`;
       manualPause = false;
       setPaused(false);

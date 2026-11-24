@@ -20,7 +20,7 @@
     const ph = p.photos[0];
     const ic = (p.pinned ? AE.icon.pinned : "") + (p.photos.length > 1 ? AE.icon.multi : "");
     const where = p.place || p.country || p.title;
-    return `<a class="tile" href="${href}" data-cur="Aç"${ph.c ? ` style="background:${esc(ph.c)}"` : ""}>${AE.img(ph.thumb, { alt: AE.placeLine(p) || p.title })}` +
+    return `<a class="tile" href="${href}" data-cur="Aç"${ph.c ? ` style="background:${esc(ph.c)}"` : ""}>${AE.pic(ph, "(max-width: 640px) 34vw, (max-width: 1100px) 30vw, 360px", { alt: AE.placeLine(p) || p.title })}` +
       `${ic ? `<span class="ic">${ic}</span>` : ""}<span class="ov">${where ? `<b>${esc(where)}</b>` : ""}<small>${esc(AE.fmtDate(p.date, true))}</small></span></a>`;
   };
 
@@ -33,11 +33,11 @@
     else {
       const r = AE.clamp(AE.ratio(p.photos[0]), 0.8, 1.6).toFixed(3);
       media = `<div class="car" style="aspect-ratio:${r}"><div class="car-track">${p.photos.map((ph, i) =>
-        `<figure><a href="#/ani/${encodeURIComponent(p.id)}/${i}" data-cur="Aç" style="display:block;height:100%">${AE.img(ph.thumb, { alt: where, attrs: `${AE.srcset(ph)} sizes="(max-width: 640px) 100vw, 620px"` })}</a></figure>`).join("")}</div></div>`;
+        `<figure><a href="#/ani/${encodeURIComponent(p.id)}/${i}" data-cur="Aç" style="display:block;height:100%">${AE.pic(ph, "(max-width: 640px) 100vw, 620px", { alt: where })}</a></figure>`).join("")}</div></div>`;
     }
     const cap = p.type === "note" ? "" : (p.title || p.caption) ? `<p class="post-cap">${p.title ? `<b>${esc(p.title)}</b>` : ""}${esc(p.caption)}</p>` : "";
     return `<article class="post" data-id="${esc(p.id)}">${head}${media}
-      <div class="post-actions"><button type="button" data-share="#/ani/${encodeURIComponent(p.id)}" data-title="${esc(p.title || where || "Bir anı")}">${AE.icon.share}Paylaş</button>
+      <div class="post-actions">${AE.likeBtnHTML(p.id)}<button type="button" data-share="#/ani/${encodeURIComponent(p.id)}" data-title="${esc(p.title || where || "Bir anı")}">${AE.icon.share}Paylaş</button>
       <a href="#/ani/${encodeURIComponent(p.id)}">${AE.icon.link}Aç</a>${p.photos.length > 1 ? `<span class="count">${p.photos.length} fotoğraf</span>` : ""}</div>${cap}</article>`;
   };
 
@@ -141,6 +141,15 @@
         scope.reveal(n);
         const car = $(".car", n);
         if (car) AE.carousel(car);
+        if (n.classList.contains("post")) {
+          const id = n.dataset.id, media = car || $(".note-card", n);
+          if (media) scope.add(AE.dbltap(media, e => AE.like(id, e.clientX, e.clientY), e => {
+            if (e.target.closest("button")) return;
+            const a = e.target.closest("a[href]");
+            AE.go(a ? a.getAttribute("href") : `#/ani/${encodeURIComponent(id)}`);
+          }));
+          AE.paintLikes(n);
+        }
       });
       return true;
     }
@@ -196,7 +205,7 @@
     const ph = c.photos.map(x => x.ph);
     const front = c.coverPhoto || ph[0];
     const others = ph.filter(x => x !== front);
-    const st = (x, cls) => x ? AE.img(x.thumb, { cls, alt: "" }) : `<span class="st ${cls}"></span>`;
+    const st = (x, cls) => x ? AE.img(x.sm || x.thumb, { cls, alt: "" }) : `<span class="st ${cls}"></span>`;
     return `<a class="ccard rv" href="${c.hash}" data-cur="Aç">
       <div class="ccard-stack">${st(others[1], "s3")}${st(others[0], "s2")}${st(front, "s1")}</div>
       <div class="ccard-meta"><h3>${c.flag ? c.flag + " " : ""}${esc(c.title)}</h3><p>${c.photos.length} fotoğraf${c.first ? " · " + esc(AE.fmtRange(c.first, c.last)) : ""}</p></div></a>`;
@@ -249,7 +258,7 @@
           </header>
           ${c.desc ? `<p class="cdet-desc rv">${esc(c.desc)}</p>` : ""}
           ${c.places.length > 1 ? `<div class="cdet-places rv"><button type="button" class="chip on" data-place="">Tümü</button>${c.places.map(pl => `<button type="button" class="chip" data-place="${esc(pl)}">${esc(pl)}</button>`).join("")}</div>` : ""}
-          <div class="jgrid">${photos.map(x => `<a class="jt" href="#/ani/${encodeURIComponent(x.post.id)}/${x.i}" style="--ar:${AE.ratio(x.ph).toFixed(3)}" data-place="${esc(x.post.place)}" data-cur="Aç"><i></i>${AE.img(x.ph.thumb, { alt: AE.placeLine(x.post) })}<figcaption>${esc([x.post.place, AE.fmtDate(x.post.date, true)].filter(Boolean).join(" · "))}</figcaption></a>`).join("")}</div>
+          <div class="jgrid">${photos.map(x => `<a class="jt" href="#/ani/${encodeURIComponent(x.post.id)}/${x.i}" style="--ar:${AE.ratio(x.ph).toFixed(3)}" data-place="${esc(x.post.place)}" data-cur="Aç"><i></i>${AE.pic(x.ph, "(max-width: 640px) 50vw, 30vw", { alt: AE.placeLine(x.post) })}<figcaption>${esc([x.post.place, AE.fmtDate(x.post.date, true)].filter(Boolean).join(" · "))}</figcaption></a>`).join("")}</div>
           ${next && next !== c ? `<a class="cdet-next" href="${next.hash}" data-cur="Sıradaki">${next.coverPhoto ? AE.img(next.coverPhoto.thumb, { alt: "" }) : ""}<div><span>Sıradaki ${next.label.toLocaleLowerCase("tr")}</span><h3>${next.flag ? next.flag + " " : ""}${esc(next.title)}</h3></div></a>` : ""}
           ${AE.footerHTML()}
         </div>`);

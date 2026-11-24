@@ -20,7 +20,23 @@
     } catch (e) { return null; }
   }
 
+  let libsP = null;
+  const loadLibs = () => libsP || (libsP = (async () => {
+    if (!(window.d3 && d3.geoOrthographic)) {
+      await AE.loadScript("assets/vendor/d3-array.min.js?v=3.2.4");
+      await AE.loadScript("assets/vendor/d3-geo.min.js?v=3.1.1");
+    }
+    if (!window.topojson) await AE.loadScript("assets/vendor/topojson-client.min.js?v=3.1.0");
+  })().catch(e => { libsP = null; throw e; }));
+
   AE.globe = function (wrap, opts = {}) {
+    let inst = null, dead = false;
+    const api = { focus(k) { if (inst) inst.focus(k); }, destroy() { dead = true; if (inst) inst.destroy(); } };
+    loadLibs().then(() => { if (!dead) inst = createGlobe(wrap, opts); }).catch(() => { wrap.style.display = "none"; });
+    return api;
+  };
+
+  function createGlobe(wrap, opts) {
     const canvas = wrap.querySelector("canvas");
     const tip = wrap.querySelector(".globe-tip");
     const api = { focus() {}, destroy() {} };
@@ -31,7 +47,7 @@
     const still = AE.reduced();
     let dead = false, raf = 0, visible = true, last = 0, w = 0, h = 0, dpr = 1, r = 100;
     let rot = [-28, -38, 0], auto = !still, dragging = false, focusAnim = null, focusKey = "", resumeT = 0;
-    let land = null, borders = null, visited = [], pts = [], vis = [], featByKey = new Map();
+    let land = null, borders = null, visited = [], pts = [], vis = [], arcs = [], featByKey = new Map();
     const projection = d3.geoOrthographic().clipAngle(90).precision(0.7);
     const path = d3.geoPath(projection, ctx);
     const grat = d3.geoGraticule10();
@@ -61,6 +77,31 @@
       if (borders) { ctx.beginPath(); path(borders); ctx.strokeStyle = "rgba(11,10,9,.6)"; ctx.lineWidth = 0.5; ctx.stroke(); }
       ctx.beginPath(); path({ type: "Sphere" }); ctx.strokeStyle = `rgba(${rgb}, .38)`; ctx.lineWidth = 1; ctx.stroke();
       const center = [-rot[0], -rot[1]];
+      const lifted = (ll, k, len) => {
+        const xy = projection(ll), l = 1 + Math.sin(Math.PI * k) * Math.min(0.2, len * 0.14);
+        return [cx + (xy[0] - cx) * l, cy + (xy[1] - cy) * l];
+      };
+      arcs.forEach((a, i) => {
+        ctx.beginPath();
+        let pen = false;
+        for (let k = 0; k <= 40; k++) {
+          const ll = a.f(k / 40);
+          if (d3.geoDistance(ll, center) > Math.PI / 2 - 0.02) { pen = false; continue; }
+          const [x, y] = lifted(ll, k / 40, a.len);
+          if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; }
+        }
+        ctx.setLineDash([3, 5]);
+        ctx.lineDashOffset = still ? 0 : -((t || 0) * 0.02);
+        ctx.strokeStyle = `rgba(${rgb}, .65)`; ctx.lineWidth = 1.1; ctx.stroke();
+        ctx.setLineDash([]);
+        if (!still) {
+          const k = (((t || 0) / 2800) + i * 0.37) % 1, ll = a.f(k);
+          if (d3.geoDistance(ll, center) < Math.PI / 2 - 0.02) {
+            const [x, y] = lifted(ll, k, a.len);
+            ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+          }
+        }
+      });
       const pulse = still ? 0.5 : ((t || 0) % 2200) / 2200;
       vis = [];
       pts.forEach(p => {
@@ -200,6 +241,13 @@
         }
         return ll ? { ll, label: p.place || p.country, sub: p.place ? p.country : "", count: p.count, key: p.key } : null;
       }).filter(Boolean);
+      if (pts.length > 1) {
+        const homeCC = AE.ccFromName(String(D.site.location || "").split(",").pop().trim());
+        const own = pts.filter(p => homeCC && p.key === homeCC.toLowerCase());
+        const home = (own.length ? own : pts).slice().sort((a, b) => b.count - a.count)[0];
+        arcs = pts.filter(p => p !== home && d3.geoDistance(p.ll, home.ll) > 0.02).slice(0, 24)
+          .map(p => ({ f: d3.geoInterpolate(home.ll, p.ll), len: d3.geoDistance(home.ll, p.ll) }));
+      }
       if (pts.length) {
         let sxv = 0, syv = 0, lat = 0;
         pts.forEach(p => { sxv += Math.cos(p.ll[0] * Math.PI / 180) * p.count; syv += Math.sin(p.ll[0] * Math.PI / 180) * p.count; lat += p.ll[1] * p.count; });
@@ -230,5 +278,5 @@
       document.removeEventListener("visibilitychange", onVis);
     };
     return api;
-  };
+  }
 })();

@@ -4,11 +4,6 @@
   const AE = window.AE;
   const { $, $$, esc, reduced, finePointer, hasGsap, mq } = AE;
 
-  AE.srcset = ph => {
-    if (!ph || !ph.thumb || ph.thumb === ph.src) return "";
-    const tw = Math.round(ph.w * Math.min(1, 1000 / Math.max(ph.w, ph.h)));
-    return `srcset="${esc(ph.thumb)} ${tw}w, ${esc(ph.src)} ${ph.w}w"`;
-  };
 
   function heroSet(D) {
     const list = D.photos.filter(x => x.post.featured && x.i === 0);
@@ -45,10 +40,9 @@
     const words = s.words.map((w, i) => `<span class="${i ? "" : "on"}">${esc(w)}</span>`).join("");
     const firstHL = D.highlights[0];
     const frameImgs = set.map((x, i) => `<img src="${esc(x.ph.thumb)}" ${AE.srcset(x.ph)} sizes="(max-width: 899px) 100vw, 460px" alt="${esc(AE.placeLine(x.post))}" class="${i ? "" : "on"}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async">`).join("");
-    const ambImgs = set.map((x, i) => `<img src="${esc(x.ph.thumb)}" alt="" class="${i ? "" : "on"}" loading="lazy" decoding="async">`).join("");
     return `
     <section class="hero" id="hero">
-      <div class="hero-amb" aria-hidden="true">${ambImgs}</div>
+      <canvas class="hero-gl" aria-hidden="true"></canvas>
       <div class="hero-text">
         <p class="eyebrow hero-kicker">${esc(kicker)}</p>
         <h1 class="hero-name" aria-label="${esc(s.name)}"><span class="line">${AE.chars(first)}</span>${last ? `<span class="line"><em>${AE.chars(last, first.length)}</em></span>` : ""}</h1>
@@ -56,14 +50,17 @@
         <div class="hero-cta">
           <a class="btn solid" href="#/anilar">Anılara dal <span class="arr">→</span></a>
           ${firstHL ? `<a class="btn" href="#/hikaye/${firstHL.kind}/${encodeURIComponent(firstHL.key)}">${AE.icon.play} Hikâyeleri izle</a>` : `<a class="btn" href="#/hakkimda">Ben kimim?</a>`}
+          ${D.photos.length > 2 ? `<button type="button" class="icon-btn dice-btn" data-dice aria-label="Şansına bir anı" data-cur="Zar at" title="Şansına bir anı">🎲</button>` : ""}
         </div>
       </div>
       <div class="hero-frame-wrap">
         <div class="hero-frame">${frameImgs || `<div class="mono-ph">${esc(AE.initials(s.name))}</div>`}</div>
+        ${set.length ? `<div class="hud" aria-hidden="true"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+          <span class="hud-rec"><b></b>REC</span><span class="hud-geo">${esc(geoText(set[0]))}</span><span class="hud-n">01 / ${AE.pad2(set.length)}</span><span class="hud-scan"></span></div>` : ""}
         ${set.length ? `<div class="hero-frame-cap${capHTML(set[0]) ? "" : " empty"}">${AE.icon.pin.replace("<svg", '<svg style="width:12px;height:12px;vertical-align:-1px;margin-right:6px;color:var(--accent)"')}<span>${capHTML(set[0])}</span></div>` : ""}
       </div>
       <div class="hero-foot">
-        <span><i class="live-dot"></i>${esc(s.location || "Türkiye")} · <span data-clock>${AE.clock()}</span></span>
+        <span><i class="live-dot"></i>${esc(s.location || "Türkiye")} · <span data-clock>${AE.clock()}</span><span data-weather></span></span>
         <span class="scroll">Kaydır <i></i></span>
         <span class="hide-m">${D.posts.length} anı${D.countries.length ? ` · ${D.countries.length} ülke` : ""}</span>
       </div>
@@ -92,7 +89,7 @@
     const cards = list.map((p, i) => {
       const ph = p.photos[0];
       return `<a class="lcard" href="#/ani/${encodeURIComponent(p.id)}" data-cur="Aç">
-        <div class="lcard-img">${AE.img(ph.thumb, { alt: AE.placeLine(p) })}${p.photos.length > 1 ? `<span class="badge">${AE.icon.multi}${p.photos.length}</span>` : ""}</div>
+        <div class="lcard-img">${AE.pic(ph, "(max-width: 899px) 74vw, 26vw", { alt: AE.placeLine(p) })}${p.photos.length > 1 ? `<span class="badge">${AE.icon.multi}${p.photos.length}</span>` : ""}</div>
         <div class="lcard-meta"><b>${esc(p.title || p.place || p.country || "Bir anı")}</b><span>${esc(AE.fmtDate(p.date, true))}</span></div>
         <div class="lcard-n">${AE.pad2(i + 1)} — ${esc(p.country || "")}</div>
       </a>`;
@@ -113,7 +110,7 @@
   }
 
   AE.storyItemHTML = c => `<a class="story" href="#/hikaye/${c.kind}/${encodeURIComponent(c.key)}" data-cur="İzle">
-      <span class="story-ring"><span>${c.coverPhoto ? AE.img(c.coverPhoto.thumb, { alt: c.title }) : ""}</span></span>
+      <span class="story-ring"><span>${c.coverPhoto ? AE.img(c.coverPhoto.sm || c.coverPhoto.thumb, { alt: c.title }) : ""}</span></span>
       <span class="story-name">${c.flag ? c.flag + " " : ""}${esc(c.title)}</span>
       <span class="story-sub">${c.photos.length} kare</span></a>`;
 
@@ -251,6 +248,88 @@
     scope.anim(() => gsap.fromTo(big, { yPercent: 60 }, { yPercent: 12, ease: "none", scrollTrigger: { trigger: big.parentNode, start: "top bottom", end: "bottom bottom", scrub: true } }));
   };
 
+  const geoText = x => {
+    const g = x && x.post.geo;
+    if (!g) return x && x.post.country ? [x.post.country.toLocaleUpperCase("tr"), AE.fmtDate(x.post.date, true)].filter(Boolean).join(" · ") : "";
+    return `${Math.abs(g[0]).toFixed(2)}° ${g[0] >= 0 ? "K" : "G"} · ${Math.abs(g[1]).toFixed(2)}° ${g[1] >= 0 ? "D" : "B"}`;
+  };
+  const prand = i => { const v = Math.sin(i * 12.9898 + 4.1414) * 43758.5453; return v - Math.floor(v); };
+
+  /* Bugün geçmişte */
+  function otdHTML(D) {
+    const now = new Date(), y = now.getFullYear();
+    const md = `${AE.pad2(now.getMonth() + 1)}-${AE.pad2(now.getDate())}`;
+    const full = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    const dated = D.posts.filter(p => p.type === "photo" && full.test(p.date) && +p.date.slice(0, 4) < y);
+    let hits = dated.filter(p => p.date.slice(5) === md), title;
+    if (hits.length) {
+      const n = y - +hits[0].date.slice(0, 4);
+      title = `<em>${n} yıl önce</em> bugün`;
+    } else {
+      const doy = d => { const a = d.slice(5).split("-").map(Number); return a[0] * 31 + a[1]; };
+      const today = (now.getMonth() + 1) * 31 + now.getDate();
+      hits = dated.filter(p => Math.abs(doy(p.date) - today) <= 7);
+      if (!hits.length) return "";
+      title = `Geçmişte <em>bu hafta</em>`;
+    }
+    hits = hits.slice(0, 3);
+    return `
+    <section class="section otd">
+      <div class="section-head"><div><p class="eyebrow">Bugün geçmişte</p><h2 class="h2" data-split>${title}</h2></div></div>
+      <div class="otd-row">${hits.map(p => `<a class="otd-card rv" href="#/ani/${encodeURIComponent(p.id)}" data-cur="Aç">
+        <div class="otd-img">${AE.pic(p.photos[0], "(max-width: 640px) 90vw, 30vw", { alt: AE.placeLine(p) })}</div>
+        <div class="otd-meta"><b>${esc(p.place || p.country || p.title || "Bir anı")}</b><span>${esc(AE.fmtDate(p.date))} · ${y - +p.date.slice(0, 4)} yıl önce</span></div></a>`).join("")}</div>
+    </section>`;
+  }
+
+  /* 3B zaman tüneli: geçmişten bugüne fotoğrafların arasından uçuş */
+  function tunnelHTML(D) {
+    let list = D.photos.filter(x => x.i === 0 && /^[0-9]{4}/.test(x.post.date)).slice().sort((a, b) => a.post.date.localeCompare(b.post.date));
+    if (list.length < 5) return "";
+    if (list.length > 18) { const k = list.length / 18; list = Array.from({ length: 18 }, (_, i) => list[Math.floor(i * k)]); }
+    const GAP = 460;
+    let z = 0, lastY = "";
+    const items = [];
+    list.forEach((x, i) => {
+      const yr = x.post.date.slice(0, 4);
+      if (yr !== lastY) {
+        items.push(`<div class="tn-el tn-yr" data-z="${z}" data-year="${yr}" style="transform:translate3d(-50%,-50%,${z}px)">${yr}</div>`);
+        z -= GAP * 0.75; lastY = yr;
+      }
+      const side = i % 2 ? 1 : -1;
+      const xv = side * (13 + prand(i) * 11), yv = (prand(i + 9) - 0.5) * 26, rot = (prand(i + 3) - 0.5) * 9;
+      items.push(`<a class="tn-el tn-ph" href="#/ani/${encodeURIComponent(x.post.id)}" data-z="${z}" data-year="${yr}" data-cur="Aç" style="--ar:${AE.ratio(x.ph).toFixed(3)};transform:translate3d(calc(${xv.toFixed(1)}vw - 50%),calc(${yv.toFixed(1)}vh - 50%),${z}px) rotate(${rot.toFixed(1)}deg)">
+        ${AE.pic(x.ph, "(max-width: 640px) 46vw, 22vw", { alt: AE.placeLine(x.post) })}<span>${esc([x.post.place || x.post.country, AE.fmtDate(x.post.date, true)].filter(Boolean).join(" · "))}</span></a>`);
+      z -= GAP;
+    });
+    items.push(`<div class="tn-el tn-end" data-z="${z}" style="transform:translate3d(-50%,-50%,${z}px)"><p>…ve <em>bugün.</em></p><a class="btn solid" href="#/anilar">Tüm anılar <span class="arr">→</span></a></div>`);
+    return `
+    <section class="tunnel">
+      <div class="tn-stage">
+        <div class="tn-floor" aria-hidden="true"></div>
+        <div class="tn-scene">${items.join("")}</div>
+        <div class="tn-hud"><p class="eyebrow">Zaman yolculuğu</p><b class="tn-year">${list[0].post.date.slice(0, 4)}</b><div class="tn-bar"><i></i></div><small>Kaydırdıkça geçmişten bugüne uç</small></div>
+        <button type="button" class="tn-skip">Atla ↓</button>
+      </div>
+    </section>`;
+  }
+
+  /* Mola: oyun daveti */
+  function playHTML(D) {
+    return `
+    <section class="section play">
+      <div class="play-card rv">
+        <div class="play-art" aria-hidden="true"><span class="pt pt1"></span><span class="pt pt2"></span><span class="pt pt3"></span>${AE.faceHTML("play-face")}<span class="play-heart">♥</span></div>
+        <div class="play-text">
+          <p class="eyebrow">Mola</p>
+          <h2 class="h2" data-split>Benimle bir tur <em>uç.</em></h2>
+          <p class="lead">Anı kulelerinin arasından geç, kalpleri topla. Rekorun: <b data-best>0</b></p>
+          <a class="btn solid" href="#/oyun" data-cur="Oyna">Oyna ${AE.icon.play}</a>
+        </div>
+      </div>
+    </section>`;
+  }
+
   AE.views[""] = {
     title: () => "Ana <em>sayfa</em>",
     render(args, scope) {
@@ -261,12 +340,15 @@
         ${heroHTML(D, set)}
         ${marqueeHTML(D)}
         <section class="statement"><p class="eyebrow">Bu site</p><p class="stm">${statementHTML(D.site.bio)}</p></section>
+        ${sec.otd ? otdHTML(D) : ""}
         ${sec.latest ? latestHTML(D) : ""}
+        ${sec.tunnel ? tunnelHTML(D) : ""}
         ${sec.stories ? storiesHTML(D) : ""}
         ${sec.stats ? statsHTML(D) : ""}
         ${sec.globe ? worldHTML(D) : ""}
         ${sec.notes ? notesHTML(D) : ""}
         ${sec.about ? teaserHTML(D) : ""}
+        ${sec.play ? playHTML(D) : ""}
         ${sec.contact ? AE.contactHTML(D) : ""}
         ${D.posts.length ? "" : `<div class="empty-hero"><b>İlk anılar yolda.</b>Yakında burada fotoğraflar, yolculuklar ve hikâyeler olacak.</div>`}
         ${AE.footerHTML()}
@@ -287,7 +369,7 @@
     scope.add(() => { AE.heroGo = null; AE.heroFirstImg = null; });
     if (!AE.introPending) requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add("go")));
 
-    const fImgs = $$(".hero-frame img", hero), aImgs = $$(".hero-amb img", hero), cap = $(".hero-frame-cap span", hero);
+    const fImgs = $$(".hero-frame img", hero), cap = $(".hero-frame-cap span", hero), hudGeo = $(".hud-geo", hero), hudN = $(".hud-n", hero);
     let hi = 0, heroVisible = true;
     if (fImgs.length > 1) {
       if ("IntersectionObserver" in window) scope.io(([en]) => { heroVisible = en.isIntersecting; }).observe(hero);
@@ -295,7 +377,8 @@
         if (!heroVisible || document.hidden || AE.introPending) return;
         hi = (hi + 1) % fImgs.length;
         fImgs.forEach((im, k) => im.classList.toggle("on", k === hi));
-        aImgs.forEach((im, k) => im.classList.toggle("on", k === hi));
+        if (hudGeo) hudGeo.textContent = geoText(set[hi]);
+        if (hudN) hudN.textContent = `${AE.pad2(hi + 1)} / ${AE.pad2(set.length)}`;
         if (cap) { const h = capHTML(set[hi]); if (h) cap.innerHTML = h; cap.parentNode.classList.toggle("empty", !h); }
       }, 5200);
     }
@@ -352,8 +435,9 @@
           return tw;
         });
         let calm = 0;
-        ScrollTrigger.create({
+        const st = ScrollTrigger.create({
           trigger: mqEl, start: "top bottom", end: "bottom top",
+          onToggle: self => tws.forEach(t => (self.isActive ? t.resume() : t.pause())),
           onUpdate: self => {
             const dir = self.direction || 1;
             const boost = 1 + Math.min(Math.abs(self.getVelocity()) / 450, 5);
@@ -362,9 +446,31 @@
             calm = setTimeout(() => tws.forEach(t => gsap.to(t, { timeScale: dir, duration: 1.1, overwrite: true })), 140);
           }
         });
+        if (!st.isActive) tws.forEach(t => t.pause());
         scope.add(() => clearTimeout(calm));
       });
     } else if (mqEl && !hasGsap()) document.documentElement.classList.add("no-gsap");
+
+    /* --- aurora ışığı (masaüstü) --- */
+    const gl = $(".hero-gl", root);
+    if (gl && AE.fx && mq("(min-width: 900px)") && !reduced()) {
+      const au = AE.fx.aurora(gl);
+      if (au) {
+        hero.classList.add("has-gl");
+        scope.add(() => au.destroy());
+        let vis = true;
+        if ("IntersectionObserver" in window) scope.io(([en]) => { vis = en.isIntersecting; if (vis && !document.hidden) au.start(); else au.stop(); }).observe(hero);
+        else au.start();
+        scope.on(document, "visibilitychange", () => { if (document.hidden) au.stop(); else if (vis) au.start(); });
+        scope.on(hero, "pointermove", e => { const b = hero.getBoundingClientRect(); au.mouse((e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height); }, { passive: true });
+      }
+    }
+
+    /* --- 3B zaman tüneli --- */
+    const tn = $(".tunnel", root);
+    if (tn && AE.fx) AE.fx.tunnel(tn, scope);
+    const best = $("[data-best]", root);
+    if (best) { try { best.textContent = localStorage.getItem("ae_game_best") || "0"; } catch (e) {} }
 
     /* --- açıklama cümlesi (kelime kelime aydınlanır) --- */
     const words = $$(".statement .sw", root);
