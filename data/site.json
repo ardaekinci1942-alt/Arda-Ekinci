@@ -50,7 +50,10 @@
       "globe": true,
       "notes": true,
       "about": true,
-      "contact": true
+      "contact": true,
+      "tunnel": true,
+      "otd": true,
+      "play": true
     }
   }
 }
