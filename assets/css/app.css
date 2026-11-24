@@ -760,8 +760,9 @@ img.f.ok { opacity: 1; }
 @keyframes bp { 0% { transform: rotate(var(--a)) translateY(0) scale(.4); opacity: 0; } 20% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1); opacity: 0; } }
 .hface { display: block; width: 100%; height: 100%; overflow: visible; }
 .hf-line { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; }
-.burst .bf { position: absolute; width: 116px; height: 107px; left: -58px; top: -180px; filter: drop-shadow(0 14px 26px rgba(0,0,0,.45)) drop-shadow(0 0 16px rgba(255,61,90,.5)); animation: bf 1.45s var(--ease) forwards; }
-@keyframes bf { 0% { transform: translateY(70px) scale(0) rotate(-30deg); opacity: 0; } 22% { transform: translateY(0) scale(1.15) rotate(12deg); opacity: 1; } 36% { transform: scale(.94) rotate(-8deg); } 50% { transform: scale(1.03) rotate(4deg); } 82% { opacity: 1; transform: scale(1) rotate(0); } 100% { transform: translateY(-50px) scale(.85); opacity: 0; } }
+/* kalp şeklinde yüz: dokunulan noktada, tek başına */
+.burst .bf { position: absolute; width: 52px; height: 48px; left: -26px; top: -24px; filter: drop-shadow(0 8px 16px rgba(0,0,0,.4)) drop-shadow(0 0 12px rgba(255,61,90,.45)); animation: bh .9s var(--ease) forwards; }
+.burst.big .bf { width: 84px; height: 78px; left: -42px; top: -39px; animation-duration: 1.15s; }
 
 /* yüz yağmuru */
 .rain { position: fixed; inset: 0; z-index: 135; pointer-events: none; overflow: hidden; }
