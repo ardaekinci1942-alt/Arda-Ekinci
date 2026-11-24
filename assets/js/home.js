@@ -319,7 +319,7 @@
     return `
     <section class="section play">
       <div class="play-card rv">
-        <div class="play-art" aria-hidden="true"><span class="pt pt1"></span><span class="pt pt2"></span><span class="pt pt3"></span>${AE.faceHTML("play-face")}<span class="play-heart">♥</span></div>
+        <div class="play-art" aria-hidden="true"><span class="pt pt1"></span><span class="pt pt2"></span><span class="pt pt3"></span>${AE.headHTML("play-face")}<span class="play-heart">♥</span></div>
         <div class="play-text">
           <p class="eyebrow">Mola</p>
           <h2 class="h2" data-split>Benimle bir tur <em>uç.</em></h2>
