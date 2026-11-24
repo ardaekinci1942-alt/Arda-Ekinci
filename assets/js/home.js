@@ -466,9 +466,6 @@
       }
     }
 
-    /* --- 3B zaman tüneli --- */
-    const tn = $(".tunnel", root);
-    if (tn && AE.fx) AE.fx.tunnel(tn, scope);
     const best = $("[data-best]", root);
     if (best) { try { best.textContent = localStorage.getItem("ae_game_best") || "0"; } catch (e) {} }
 
@@ -509,12 +506,18 @@
             $$(".lcard-img img", track).forEach(img => {
               gsap.fromTo(img, { xPercent: -6 }, { xPercent: 6, ease: "none", scrollTrigger: { trigger: img.parentNode, containerAnimation: tw, start: "left right", end: "right left", scrub: true } });
             });
+            // ekran genişleyince sonradan kurulursa da sayfa sırasına göre hesaplansın
+            ScrollTrigger.sort();
             return () => { lat.classList.remove("pinned"); };
           });
           scope.add(() => mm.revert());
         });
       }
     }
+
+    /* --- 3B zaman tüneli (sabitlenen bölümler sayfadaki sırayla kurulmalı: önce "son eklenenler") --- */
+    const tn = $(".tunnel", root);
+    if (tn && AE.fx) AE.fx.tunnel(tn, scope);
 
     /* --- sayılar, küre, mıknatıs --- */
     AE.bindCommon(root, scope);
