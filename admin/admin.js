@@ -165,6 +165,7 @@
     const type = p.type === "note" ? "note" : "photo";
     const photos = (Array.isArray(p.photos) ? p.photos : []).filter(x => x && x.src).map(x => {
       const o = { src: String(x.src), thumb: String(x.thumb || x.src), w: +x.w || 1200, h: +x.h || 900 };
+      if (x.sm) o.sm = String(x.sm);
       if (x.c) o.c = String(x.c);
       return o;
     });
@@ -184,7 +185,7 @@
   }
   function toStored(p) {
     const o = { id: p.id, type: p.type };
-    if (p.type === "photo") o.photos = p.photos.map(x => { const y = { src: x.src, thumb: x.thumb, w: x.w, h: x.h }; if (x.c) y.c = x.c; return y; });
+    if (p.type === "photo") o.photos = p.photos.map(x => { const y = { src: x.src, thumb: x.thumb, w: x.w, h: x.h }; if (x.sm) y.sm = x.sm; if (x.c) y.c = x.c; return y; });
     else { o.text = p.text; if (p.mood) o.mood = p.mood; }
     Object.assign(o, { title: p.title || "", caption: p.caption || "", place: p.place || "", country: p.country || "", cc: p.cc || "" });
     if (p.geo) o.geo = [round(p.geo[0], 4), round(p.geo[1], 4)];
@@ -204,7 +205,7 @@
       name: String(s.name || "").trim() || "Arda Ekinci", handle: String(s.handle || "").trim().replace(/^@/, ""),
       tagline: String(s.tagline || "").trim(), bio: String(s.bio || "").trim(), about: String(s.about || "").trim(), now: String(s.now || "").trim(),
       location: String(s.location || "").trim(), timezone: s.timezone || "Europe/Istanbul", email: String(s.email || "").trim(),
-      socials, avatar: s.avatar || "", portrait: s.portrait || "", facts: clean(s.facts),
+      socials, avatar: s.avatar || "", portrait: s.portrait || "", face: s.face || "", facts: clean(s.facts),
       words: (s.words || []).filter(Boolean),
       cv: {
         experience: clean(s.cv.experience), education: clean(s.cv.education), skills: (s.cv.skills || []).filter(Boolean),
@@ -445,9 +446,11 @@
     img.src = "";
     img = null;
     const thumb = await resize(main.canvas, THUMB_MAX, THUMB_Q);
+    const sm = await resize(thumb.canvas, 720, 0.76);
+    freeCanvas(sm.canvas);
     const color = avgColor(thumb.canvas);
     freeCanvas(main.canvas); freeCanvas(thumb.canvas);
-    return { meta, loc, main: { blob: main.blob, w: main.w, h: main.h }, thumb: { blob: thumb.blob }, color };
+    return { meta, loc, main: { blob: main.blob, w: main.w, h: main.h }, thumb: { blob: thumb.blob }, sm: { blob: sm.blob }, color };
   }
   async function processSmall(file, max) {
     let img = await decode(file);
@@ -456,12 +459,82 @@
     freeCanvas(r.canvas);
     return r.blob;
   }
+  /* yüz kırpıcı: dairenin içinde sürükle / yakınlaştır */
+  function openCropper(file) {
+    return new Promise(async res => {
+      let img;
+      try { img = await decode(file); } catch (e) { toast(`Fotoğraf açılamadı. ${HEIC_HINT}`, "err"); res(null); return; }
+      const W = img.naturalWidth, H = img.naturalHeight, url = URL.createObjectURL(file);
+      let out = null;
+      const sh = sheet({
+        title: "Yüzünü ortala", sticky: true,
+        body: `<div class="crop-box"><img class="crop-img" src="${url}" alt="" draggable="false"><div class="crop-ring"></div></div>
+          <label>Yakınlaştır<input type="range" min="1" max="5" step="0.01" value="1" data-zoom></label>
+          <p class="muted">Fotoğrafı sürükleyerek yüzünü dairenin ortasına getir. İki parmakla da yakınlaştırabilirsin.</p>`,
+        foot: `<button type="button" class="btn ghost" data-close>İptal</button><span class="sp"></span><button type="button" class="btn primary" data-ok>Kaydet</button>`,
+        onClose: () => { URL.revokeObjectURL(url); res(out); }
+      });
+      const box = $(".crop-box", sh.el), im = $(".crop-img", sh.el), zr = $("[data-zoom]", sh.el);
+      let B = box.clientWidth || 300, zoom = 1, tx = 0, ty = 0;
+      const base = () => B / Math.min(W, H);
+      const apply = () => {
+        const s = base() * zoom, iw = W * s, ih = H * s;
+        tx = Math.min(0, Math.max(B - iw, tx)); ty = Math.min(0, Math.max(B - ih, ty));
+        im.style.width = `${iw}px`; im.style.height = `${ih}px`;
+        im.style.transform = `translate(${tx}px, ${ty}px)`;
+      };
+      const setZoom = z => {
+        z = Math.max(1, Math.min(5, z));
+        const s0 = base() * zoom, cx = (B / 2 - tx) / s0, cy = (B / 2 - ty) / s0;
+        zoom = z;
+        const s1 = base() * zoom;
+        tx = B / 2 - cx * s1; ty = B / 2 - cy * s1;
+        zr.value = String(z);
+        apply();
+      };
+      { const s = base(); tx = (B - W * s) / 2; ty = (B - H * s) / 2 * (H > W ? 0.45 : 1); apply(); }
+      zr.addEventListener("input", () => setZoom(+zr.value));
+      const pts = new Map();
+      let last = null, pinch = 0;
+      box.addEventListener("pointerdown", e => { box.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); last = [e.clientX, e.clientY]; pinch = 0; });
+      box.addEventListener("pointermove", e => {
+        if (!pts.has(e.pointerId)) return;
+        pts.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pts.size >= 2) {
+          const [a, b2] = [...pts.values()];
+          const d = Math.hypot(a[0] - b2[0], a[1] - b2[1]);
+          if (pinch) setZoom(zoom * d / pinch);
+          pinch = d;
+          return;
+        }
+        if (last) { tx += e.clientX - last[0]; ty += e.clientY - last[1]; apply(); }
+        last = [e.clientX, e.clientY];
+      });
+      const up = e => { pts.delete(e.pointerId); pinch = 0; last = pts.size === 1 ? [...pts.values()][0] : null; };
+      box.addEventListener("pointerup", up);
+      box.addEventListener("pointercancel", up);
+      box.addEventListener("wheel", e => { e.preventDefault(); setZoom(zoom * (e.deltaY < 0 ? 1.08 : 0.92)); }, { passive: false });
+      $("[data-ok]", sh.el).addEventListener("click", async () => {
+        const s = base() * zoom, c = document.createElement("canvas");
+        c.width = 512; c.height = 512;
+        const x = c.getContext("2d");
+        x.fillStyle = "#fff"; x.fillRect(0, 0, 512, 512);
+        x.imageSmoothingQuality = "high";
+        x.drawImage(img, -tx / s, -ty / s, B / s, B / s, 0, 0, 512, 512);
+        out = await new Promise(r => c.toBlob(r, "image/jpeg", 0.9));
+        freeCanvas(c);
+        sh.close();
+      });
+    });
+  }
+
   function photoFrom(it) {
     const id = uid();
-    const ph = { src: `photos/${id}.jpg`, thumb: `photos/thumbs/${id}.jpg`, w: it.main.w, h: it.main.h };
+    const ph = { src: `photos/${id}.jpg`, thumb: `photos/thumbs/${id}.jpg`, sm: `photos/sm/${id}.jpg`, w: it.main.w, h: it.main.h };
     if (it.color) ph.c = it.color;
     stage(ph.src, it.main.blob);
     stage(ph.thumb, it.thumb.blob);
+    stage(ph.sm, it.sm.blob);
     return ph;
   }
   const HEIC_HINT = "iPhone fotoğrafı açılamadıysa: Ayarlar → Kamera → Formatlar → “En Uyumlu”.";
@@ -509,7 +582,7 @@
     const meta = [p.place || p.country, p.taken ? fmtDate(p.taken, true) : ""].filter(Boolean).join(" · ");
     const cls = `${S.sel.has(p.id) ? " sel" : ""}${p.hidden ? " hidden-post" : ""}`;
     if (p.type === "note") return `<button type="button" class="pc note${cls}" data-id="${esc(p.id)}">${p.mood ? `<span class="mood">${esc(p.mood)}</span>` : ""}<p>${esc(p.text)}</p><span class="badges">${badges}</span><span class="tick">✓</span></button>`;
-    return `<button type="button" class="pc${cls}" data-id="${esc(p.id)}">${imgTag(p.photos[0].thumb)}<span class="badges">${badges}</span>${meta ? `<span class="meta">${esc(meta)}</span>` : ""}<span class="tick">✓</span></button>`;
+    return `<button type="button" class="pc${cls}" data-id="${esc(p.id)}">${imgTag(p.photos[0].sm || p.photos[0].thumb)}<span class="badges">${badges}</span>${meta ? `<span class="meta">${esc(meta)}</span>` : ""}<span class="tick">✓</span></button>`;
   }
   function renderPosts() {
     const list = filtered();
@@ -548,7 +621,7 @@
   function deletePosts(ids) {
     const set = new Set(ids);
     S.posts.filter(p => set.has(p.id)).forEach(p => p.photos.forEach(ph => {
-      removePath(ph.src); removePath(ph.thumb);
+      removePath(ph.src); removePath(ph.thumb); removePath(ph.sm);
       S.albums.forEach(a => { if (a.cover === ph.src) a.cover = ""; });
     }));
     S.posts = S.posts.filter(p => !set.has(p.id));
@@ -909,7 +982,7 @@
       p.album = f("album").value === "__new" ? p.album : f("album").value;
       p.featured = f("featured").checked; p.pinned = f("pinned").checked; p.hidden = f("hidden").checked;
       const kept = new Set(p.photos.map(x => x.src));
-      orig.photos.forEach(ph => { if (!kept.has(ph.src)) { removePath(ph.src); removePath(ph.thumb); S.albums.forEach(a => { if (a.cover === ph.src) a.cover = ""; }); } });
+      orig.photos.forEach(ph => { if (!kept.has(ph.src)) { removePath(ph.src); removePath(ph.thumb); removePath(ph.sm); S.albums.forEach(a => { if (a.cover === ph.src) a.cover = ""; }); } });
       saved = true;
       S.posts = sortPosts(S.posts.map(x => (x.id === p.id ? p : x)));
       fillGeo([p]);
@@ -953,7 +1026,7 @@
     const photoPosts = S.posts.filter(p => p.type === "photo");
     const render = () => {
       $("[data-mcount]", b).textContent = `(${members.size})`;
-      $("[data-members]", b).innerHTML = photoPosts.map(p => `<button type="button" data-mem="${esc(p.id)}" class="${members.has(p.id) ? "on" : ""}">${imgTag(p.photos[0].thumb)}</button>`).join("") || '<p class="muted">Önce fotoğraf ekle.</p>';
+      $("[data-members]", b).innerHTML = photoPosts.map(p => `<button type="button" data-mem="${esc(p.id)}" class="${members.has(p.id) ? "on" : ""}">${imgTag(p.photos[0].sm || p.photos[0].thumb)}</button>`).join("") || '<p class="muted">Önce fotoğraf ekle.</p>';
       const covers = photoPosts.filter(p => members.has(p.id)).flatMap(p => p.photos);
       $("[data-covers]", b).innerHTML = covers.map(ph => `<button type="button" data-cov="${esc(ph.src)}" class="${al.cover === ph.src ? "on" : ""}">${imgTag(ph.thumb)}</button>`).join("") || '<p class="muted">Albüme anı ekleyince kapak seçebilirsin.</p>';
     };
@@ -1040,10 +1113,11 @@
       <div class="card"><h3>Fotoğraflar</h3>
         ${uploaderHTML("avatar", "Profil fotoğrafı", "Anılar sayfasında ve paylaşımlarda yuvarlak görünür.")}
         ${uploaderHTML("portrait", "Portre", "“Hakkımda” sayfasındaki büyük fotoğraf. Boşsa kapak fotoğrafların kullanılır.", true)}
+        ${uploaderHTML("face", "Yüzün (oyun & beğeni)", "Yüzünün yakın olduğu bir fotoğraf seç ve dairede ortala. Oyundaki karakter, beğenince fırlayan yüz ve sürprizlerde bu görünür.")}
       </div>
       <div class="card"><h3>Kimlik</h3>
         <div class="row2">${field("name", "İsim")}${field("handle", "Kullanıcı adı", { ph: "ardaekinci" })}</div>
-        <div class="row2">${field("location", "Yaşadığın yer", { ph: "İstanbul, Türkiye" })}
+        <div class="row2">${field("location", "Yaşadığın yer", { ph: "İstanbul, Türkiye", hint: "Şehir de yazarsan sitede o şehrin hava durumu görünür." })}
         <label>Saat dilimi<select data-k="timezone">${tz.map(z => `<option${z === s.timezone ? " selected" : ""}>${esc(z)}</option>`).join("")}</select></label></div>
       </div>
       <div class="card"><h3>Yazılar</h3>
@@ -1077,7 +1151,7 @@
       </div>`;
   }
   const PRESETS = ["#e8b67a", "#f08a5d", "#ff6b81", "#c38fff", "#6aa9ff", "#5ad1c4", "#9bd16b", "#f4eee6"];
-  const SECTIONS = [["latest", "Son eklenenler (yatay kayan bölüm)"], ["stories", "Hikâyeler (yuvarlak öne çıkanlar)"], ["stats", "Sayılar"], ["globe", "Dünya küresi"], ["notes", "Notlar"], ["about", "Hakkımda tanıtımı"], ["contact", "İletişim"]];
+  const SECTIONS = [["otd", "Bugün geçmişte (o güne denk gelen anılar)"], ["latest", "Son eklenenler (yatay kayan bölüm)"], ["tunnel", "3B zaman tüneli"], ["stories", "Hikâyeler (yuvarlak öne çıkanlar)"], ["stats", "Sayılar"], ["globe", "Dünya küresi"], ["notes", "Notlar"], ["play", "Mini oyun daveti"], ["about", "Hakkımda tanıtımı"], ["contact", "İletişim"]];
   function renderSettings() {
     const t = S.site.theme;
     $("#settingsForm").innerHTML = `
@@ -1197,6 +1271,17 @@
         const key = t.dataset.upfile, file = t.files && t.files[0];
         t.value = "";
         if (!file) return;
+        if (key === "face") {
+          const blob = await openCropper(file);
+          if (!blob) return;
+          const path = `images/face-${uid()}.jpg`;
+          stage(path, blob);
+          removePath(S.site.face);
+          S.site.face = path;
+          renderProfile(); updateBar();
+          toast("Yüzün hazır! Yayınlayınca oyunda ve beğenilerde görünecek 😄", "ok", 5000);
+          return;
+        }
         try {
           const blob = await processSmall(file, key === "avatar" ? 800 : 1600);
           const path = `images/${key}-${uid()}.jpg`;

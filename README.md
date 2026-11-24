@@ -18,13 +18,23 @@ Bütün içerik `/admin` panelinden yönetilir.
 
 Her anının kendine ait bir bağlantısı var (ör. `ardaekinci.com/#/ani/…`), “Paylaş” ile WhatsApp vb. yerlere gönderilebilir.
 
+### Eğlenceli ve fütüristik kısımlar
+- **Beğeni:** Fotoğrafa çift dokun ya da ♥'ye bas, kalp patlar ve yüzün fırlar. Hesap gerekmez; toplam sayılar ücretsiz bir sayaç servisinde (abacus.jasoncameron.dev) tutulur, servis kapalıysa sayı gizlenir ama kalp yine çalışır.
+- **Uçan Arda (`#/oyun`):** Yüzünle oynanan mini oyun. Anı fotoğraflarından kulelerin arasından uç, kalpleri topla. En iyi skor ziyaretçinin cihazında saklanır.
+- **3B zaman tüneli:** Ana sayfada kaydırdıkça yıllar ve fotoğraflar arasından geçmişten bugüne uçulur.
+- **Aurora ışığı ve vizör:** Masaüstünde girişte fareye tepki veren canlı ışık; giriş fotoğrafında kamera vizörü (koordinat, REC).
+- **Dünya küresinde uçuş rotaları:** Yaşadığın yerden gittiğin şehirlere uzanan hareketli rotalar.
+- **Bugün geçmişte:** O güne (± bir hafta) denk gelen eski anılar kendiliğinden çıkar.
+- **Şansına bir anı (🎲), Beni dürt, yüz yağmuru:** Klavyede “arda” yaz, logodaki noktaya 5 kez tıkla ya da 5 kez dürt.
+- **Hava durumu ve ziyaretçi sayacı:** Profilde şehir yazarsan (ör. “İstanbul, Türkiye”) altta hava durumu görünür.
+
 ## Yönetim paneli (`/admin`)
 
 - **Anılar:** Fotoğrafları seç → konum ve çekim tarihi fotoğrafın içinden otomatik okunur → ister her biri ayrı anı, ister hepsi tek kaydırmalı anı olsun.
   “✎ Not” ile yazı paylaşımı. Bir anıya dokununca düzenleme: başlık, açıklama, konum, tarih, albüm, kapak ★, sabitle 📌, gizle, fotoğraf ekle/çıkar/sırala.
 - **Toplu işlem:** “Seç” (ya da bir anıya uzun bas) → albüme ekle, konum, tarih, gizle/göster, sabitle, kapağa ekle, birleştir, ayır, **toplu sil**.
 - **Albümler:** oluştur, kapak seç, anı ekle/çıkar, sırala.
-- **Profil:** profil fotoğrafı, portre, isim, kullanıcı adı, tanıtım cümlesi, hakkımda yazısı, “şu sıralar”, sosyal medya, kısaca bilgiler.
+- **Profil:** profil fotoğrafı, portre, **yüzün** (dairede kırparak; oyunda ve beğenilerde görünür), isim, kullanıcı adı, tanıtım cümlesi, hakkımda yazısı, “şu sıralar”, sosyal medya, kısaca bilgiler.
 - **CV:** deneyim, eğitim, yetenekler, diller, projeler (görselli), PDF CV yükleme.
 - **Ayarlar:** vurgu rengi, açılış animasyonu, ana sayfa bölümlerini aç/kapa, dönen ve kayan kelimeler.
 
@@ -68,12 +78,15 @@ assets/js/shell.js      Açılış animasyonu, menü, sayfa geçişleri, yönlen
 assets/js/home.js       Ana sayfa
 assets/js/pages.js      Anılar, koleksiyonlar, hakkımda
 assets/js/overlays.js   Anı görüntüleyici ve hikâye izleyici
-assets/js/globe.js      Dünya küresi
+assets/js/globe.js      Dünya küresi (kütüphaneleri gerekince yükler)
+assets/js/fx.js         Aurora ışığı, 3B zaman tüneli, hologram, hava durumu
+assets/js/fun.js        Beğeniler, kalp/yüz efektleri, zar, dürtme, ziyaretçi sayacı
+assets/js/game.js       Uçan Arda mini oyunu (açılınca yüklenir)
 assets/vendor/          GSAP, d3-geo, topojson, dünya haritası (dışarıya bağımlılık yok)
 admin/                  Yönetim paneli
 data/site.json          Profil, CV, görünüm ayarları
 data/posts.json         Anılar ve albümler
-photos/                 Fotoğraflar (+ thumbs/ küçük önizlemeler)
+photos/                 Fotoğraflar (+ thumbs/ ve sm/ küçük önizlemeler)
 images/, files/         Profil/proje görselleri, CV PDF
 ```
 

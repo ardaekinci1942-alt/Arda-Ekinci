@@ -164,7 +164,7 @@
   const DEFAULT_BIO = "Gezdiğim yerler, tanıdığım insanlar ve unutmak istemediğim *anlar.* Hepsi burada, bir arada.";
   const DEFAULT_WORDS = ["yolculuklar", "insanlar", "gündelik anlar", "şehirler", "hatıralar"];
   const DEFAULT_MARQUEE = ["Anılar", "Yolculuklar", "İnsanlar", "Şehirler", "Gündelik", "Hayat"];
-  const SECTIONS = ["latest", "stories", "stats", "globe", "notes", "about", "contact"];
+  const SECTIONS = ["latest", "tunnel", "otd", "stories", "stats", "globe", "notes", "play", "about", "contact"];
 
   function normSite(s) {
     s = s && typeof s === "object" ? s : {};
@@ -192,6 +192,7 @@
       socials,
       avatar: String(s.avatar || ""),
       portrait: String(s.portrait || ""),
+      face: String(s.face || ""),
       facts: arr(s.facts).filter(f => f.k || f.v),
       words: list(s.words).length ? list(s.words) : DEFAULT_WORDS,
       cv: {
@@ -221,7 +222,7 @@
     if (!p || typeof p !== "object") return null;
     const type = p.type === "note" ? "note" : "photo";
     const photos = (Array.isArray(p.photos) ? p.photos : []).filter(x => x && x.src).map(x => ({
-      src: String(x.src), thumb: String(x.thumb || x.src), w: +x.w || 1200, h: +x.h || 900, c: x.c || "", lqip: x.lqip || ""
+      src: String(x.src), thumb: String(x.thumb || x.src), sm: String(x.sm || ""), w: +x.w || 1200, h: +x.h || 900, c: x.c || ""
     }));
     if (type === "photo" && !photos.length) return null;
     if (type === "note" && !String(p.text || "").trim()) return null;
@@ -352,7 +353,6 @@
   };
   AE.build = build;
   AE.normSite = normSite;
-  AE.normPost = normPost;
 
   AE.coll = (kind, key) => {
     const D = AE.data;
@@ -378,6 +378,33 @@
     if (im.decode) im.decode().then(() => fin(true)).catch(() => {});
   });
   AE.ratio = ph => clamp((ph.w || 4) / (ph.h || 3), 0.3, 4);
+  // Üç boy: sm (720), thumb (1000), src (2400) — tarayıcı ekrana uygun olanı seçer
+  AE.srcset = ph => {
+    if (!ph) return "";
+    const L = Math.max(ph.w, ph.h) || 1;
+    const wAt = s => Math.round(ph.w * Math.min(1, s / L));
+    const seen = new Set(), c = [];
+    const add = (u, w) => { if (u && !seen.has(w)) { seen.add(w); c.push(`${esc(u)} ${w}w`); } };
+    add(ph.sm, wAt(720));
+    if (ph.thumb !== ph.src) add(ph.thumb, wAt(1000));
+    add(ph.src, ph.w);
+    return c.length > 1 ? `srcset="${c.join(", ")}"` : "";
+  };
+  AE.pic = (ph, sizes, o = {}) => AE.img(ph.sm || ph.thumb, Object.assign({}, o, { attrs: `${AE.srcset(ph)} sizes="${sizes}"${o.attrs ? " " + o.attrs : ""}` }));
+  const scripts = new Map();
+  AE.loadScript = src => {
+    if (!scripts.has(src)) {
+      scripts.set(src, new Promise((res, rej) => {
+        const s = document.createElement("script");
+        s.src = src; s.async = true;
+        s.onload = () => res(true);
+        s.onerror = () => { scripts.delete(src); rej(new Error("script " + src)); };
+        document.head.appendChild(s);
+      }));
+    }
+    return scripts.get(src);
+  };
+  AE.faceSrc = () => (AE.data && (AE.data.site.face || AE.data.site.avatar)) || "";
 
   /* ================= kapsam (view yaşam döngüsü) ================= */
   AE.scope = function (root) {
@@ -385,7 +412,12 @@
     let ctx = null;
     try { ctx = window.gsap ? gsap.context(() => {}, root) : null; } catch (e) { ctx = null; }
     const revealIO = "IntersectionObserver" in window ? new IntersectionObserver(ents => {
-      ents.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); revealIO.unobserve(en.target); } });
+      ents.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add("in");
+        revealIO.unobserve(en.target);
+        if (AE.fx && en.target.classList.contains("eyebrow")) AE.fx.scramble(en.target);
+      });
     }, { rootMargin: "0px 0px -7% 0px", threshold: 0.08 }) : null;
     fns.push(() => revealIO && revealIO.disconnect());
     const S = {
@@ -397,7 +429,7 @@
       io(cb, opts) { const o = new IntersectionObserver(cb, opts); fns.push(() => o.disconnect()); return o; },
       add(fn) { fns.push(fn); },
       reveal(scopeEl) {
-        const sel = ".rv, .rv-mask, .split, .tile, .post, .jt, .skills, .langs, .cvl li, .tl-year";
+        const sel = ".rv, .rv-mask, .split, .tile, .post, .jt, .skills, .langs, .cvl li, .tl-year, .eyebrow";
         const targets = scopeEl.matches && scopeEl.matches(sel) ? [scopeEl] : [];
         targets.push(...$$(sel, scopeEl));
         targets.forEach(t => { if (t.classList.contains("in")) return; if (revealIO && !reduced()) revealIO.observe(t); else t.classList.add("in"); });
@@ -540,11 +572,18 @@
     return `<span class="${cls}">${src ? AE.img(src, { alt: s.name }) : esc(initials(s.name))}</span>`;
   };
   AE.placeLine = p => [p.place, p.country].filter(Boolean).join(", ");
+  AE.faceHTML = (cls = "") => {
+    const f = AE.faceSrc();
+    return `<span class="face ${cls}">${f ? `<img src="${esc(f)}" alt="" draggable="false">` : `<b>${esc(initials(AE.data.site.name))}</b>`}</span>`;
+  };
   AE.footerHTML = () => {
     const s = AE.data.site;
     return `<div class="foot-big" aria-hidden="true"><span>${esc(s.name)}</span></div>
-      <footer class="foot"><span>© ${new Date().getFullYear()} ${esc(s.name)}</span>
-      <span><i class="live-dot"></i>${esc(s.location || "Türkiye")} · <span data-clock>${AE.clock()}</span></span>
-      <a href="#top" data-top>Başa dön ↑</a></footer>`;
+      <footer class="foot">
+        <span>© ${new Date().getFullYear()} ${esc(s.name)}</span>
+        <button type="button" class="poke" data-poke aria-label="Beni dürt">${AE.faceHTML("poke-face")}<span class="poke-txt">Beni dürt</span><span class="poke-bubble" aria-live="polite"></span></button>
+        <span class="foot-meta"><i class="live-dot"></i>${esc(s.location || "Türkiye")} · <span data-clock>${AE.clock()}</span><span data-weather></span><span class="visits" data-visits hidden> · ziyaretçi #<b></b></span></span>
+        <span class="foot-links"><a href="#/oyun" data-cur="Oyna">Oyun</a><a href="#top" data-top>Başa dön ↑</a></span>
+      </footer>`;
   };
 })();

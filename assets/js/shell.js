@@ -14,7 +14,7 @@
 
   const viewEl = $("#view");
   const topEl = $("#top");
-  const OVER = { ani: 1, hikaye: 1 };
+  const OVER = { ani: 1, hikaye: 1, oyun: 1 };
   let base = null;       // { key, name, args, scope }
   let overlay = null;    // { name, args }
   let routing = false, again = false, closing = false;
@@ -27,11 +27,10 @@
     const parts = raw.split("/").filter(Boolean).map(p => { try { return decodeURIComponent(p); } catch (e) { return p; } });
     return { name: parts[0] || "", args: parts.slice(1), key: parts.map(p => encodeURIComponent(p)).join("/") };
   }
-  AE.parse = parse;
 
   function baseFor(r) {
     if (r.name === "hikaye" && r.args.length >= 2 && AE.coll(r.args[0], r.args[1])) return parse(`#/${r.args[0]}/${encodeURIComponent(r.args[1])}`);
-    if (r.name === "hikaye") return parse("#/");
+    if (r.name === "hikaye" || r.name === "oyun") return parse("#/");
     return parse("#/anilar");
   }
 
@@ -64,22 +63,26 @@
     const prev = overlay;
     overlay = r;
     try {
-      if (r.name === "ani") {
-        if (prev && prev.name === "hikaye") AE.stories.hide(true);
-        AE.viewer.open(r.args[0], parseInt(r.args[1] || "0", 10) || 0);
-      } else {
-        if (prev && prev.name === "ani") AE.viewer.hide(true);
-        AE.stories.open(r.args[0], r.args[1]);
-      }
+      if (prev && prev.name !== r.name) hideOverlay(prev.name, true);
+      if (r.name === "ani") AE.viewer.open(r.args[0], parseInt(r.args[1] || "0", 10) || 0);
+      else if (r.name === "oyun") AE.openGame();
+      else AE.stories.open(r.args[0], r.args[1]);
     } catch (e) {
       console.error(e);
       overlay = null;
       AE.toast("Bu içerik açılamadı");
     }
   }
+  function hideOverlay(name, instant) {
+    try {
+      if (name === "ani") AE.viewer.hide(instant);
+      else if (name === "oyun") AE.hideGame();
+      else AE.stories.hide(instant);
+    } catch (e) { console.error(e); }
+  }
   function closeOverlayUI() {
     if (!overlay) return;
-    try { if (overlay.name === "ani") AE.viewer.hide(); else AE.stories.hide(); } catch (e) { console.error(e); }
+    hideOverlay(overlay.name);
     overlay = null;
   }
   AE.closeOverlay = () => {
@@ -99,7 +102,7 @@
     route();
   };
   AE.setHashSilently = h => { try { history.replaceState(history.state, "", h); } catch (e) {} };
-  AE.overlayOpen = () => !!overlay;
+  AE.go = h => { navIntent = h; location.hash = h; };
 
   /* ================= sayfa çizimi ================= */
   const strip = html => String(html || "").replace(/<[^>]+>/g, "");
@@ -128,6 +131,9 @@
     try { out.setup && out.setup(scope); } catch (e) { console.error(e); }
     scope.reveal(viewEl);
     updateClocks();
+    if (AE.paintLikes) AE.paintLikes(viewEl);
+    if (AE.fx) { AE.fx.paintWeather(viewEl); AE.fx.holo(viewEl, scope); }
+    if (AE.paintVisits) AE.paintVisits();
     if (hasGsap()) { try { ScrollTrigger.refresh(); } catch (e) {} }
     if (restoreY) requestAnimationFrame(() => window.scrollTo(0, restoreY));
     topEl.classList.remove("away");
@@ -173,10 +179,11 @@
     const coll = (D.highlights[0] || {}).coverPhoto;
     const portrait = s.portrait || s.avatar || ((D.photos[1] || D.photos[0] || {}).ph || {}).src || "";
     const items = [
-      ["#/", "Ana sayfa", "", hero && hero.thumb],
-      ["#/anilar", "Anılar", D.posts.length || "", latest && latest.thumb],
-      ["#/koleksiyonlar", "Koleksiyonlar", (D.albums.length + D.countries.length + D.years.length) || "", coll && coll.thumb],
-      ["#/hakkimda", "Hakkımda", "", portrait]
+      ["#/", "Ana sayfa", "", hero && (hero.sm || hero.thumb)],
+      ["#/anilar", "Anılar", D.posts.length || "", latest && (latest.sm || latest.thumb)],
+      ["#/koleksiyonlar", "Koleksiyonlar", (D.albums.length + D.countries.length + D.years.length) || "", coll && (coll.sm || coll.thumb)],
+      ["#/hakkimda", "Hakkımda", "", portrait],
+      ["#/oyun", "Oyun", "", AE.faceSrc()]
     ];
     $("#menuLinks").innerHTML = items.map(([h, t, n, img], i) =>
       `<a href="${h}" data-img="${esc(img || "")}"><span class="n">0${i + 1}</span><span class="mk"><span>${t}</span></span>${n ? `<sup>${n}</sup>` : ""}</a>`).join("");
@@ -199,7 +206,6 @@
     if (open) topEl.classList.remove("away");
     if (!open) $("#menuPreview").classList.remove("on");
   }
-  AE.setMenu = setMenu;
   function menuPreview() {
     const pv = $("#menuPreview"), m = $("#menu");
     m.addEventListener("pointermove", e => {
@@ -281,7 +287,7 @@
 
     // fotoğraf montajı
     const urls = [];
-    D.photos.filter(x => x.post.featured).concat(D.photos).forEach(x => { if (urls.length < 10 && !urls.includes(x.ph.thumb)) urls.push(x.ph.thumb); });
+    D.photos.filter(x => x.post.featured).concat(D.photos).forEach(x => { const u = x.ph.sm || x.ph.thumb; if (urls.length < 10 && !urls.includes(u)) urls.push(u); });
     let k = 0;
     const montage = setInterval(() => {
       const imgs = $$("img.mt.ok", frame);
@@ -350,6 +356,12 @@
     menuPreview();
     initCursor();
     $("#menuBtn").addEventListener("click", () => setMenu(!menuOpen));
+    let dots = 0, dotT = 0;
+    $(".top-name i").addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      dots++; clearTimeout(dotT); dotT = setTimeout(() => { dots = 0; }, 1500);
+      if (dots >= 5) { dots = 0; AE.faceRain(); }
+    });
     addEventListener("keydown", e => { if (e.key === "Escape" && menuOpen) setMenu(false); });
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("hashchange", route);

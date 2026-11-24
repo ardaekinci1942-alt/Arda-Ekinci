@@ -43,7 +43,7 @@ button { font: inherit; color: inherit; }
 /* inputs */
 label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); min-width: 0; }
 label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--text); font-size: 14px; cursor: pointer; }
-input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]), textarea, select {
+input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]):not([type=range]), textarea, select {
   width: 100%; background: var(--bg-2); border: 1px solid var(--line-2); color: var(--text); border-radius: 11px;
   padding: 11px 13px; font: 16px var(--sans); transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none;
 }
@@ -235,3 +235,10 @@ input[type=color] { width: 46px; height: 46px; border: 1px solid var(--line-2); 
 .boot { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; background: var(--bg); }
 .spinner { width: 34px; height: 34px; border: 3px solid var(--bg-4); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* yüz kırpıcı */
+.crop-box { position: relative; width: min(100%, 320px); aspect-ratio: 1; margin: 0 auto; overflow: hidden; border-radius: 18px; background: #000; touch-action: none; cursor: grab; }
+.crop-box:active { cursor: grabbing; }
+.crop-img { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.crop-ring { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 999px rgba(0,0,0,.55); border: 2px solid #fff; pointer-events: none; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
