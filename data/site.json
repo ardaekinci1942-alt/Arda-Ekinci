@@ -26,7 +26,12 @@
   ],
   "cv": {
     "experience": [],
-    "education": [],
+    "education": [
+      {
+        "title": "Mimar",
+        "org": "Trakya Üniversitesi"
+      }
+    ],
     "skills": [],
     "languages": [],
     "projects": [],
