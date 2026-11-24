@@ -205,7 +205,7 @@
       name: String(s.name || "").trim() || "Arda Ekinci", handle: String(s.handle || "").trim().replace(/^@/, ""),
       tagline: String(s.tagline || "").trim(), bio: String(s.bio || "").trim(), about: String(s.about || "").trim(), now: String(s.now || "").trim(),
       location: String(s.location || "").trim(), timezone: s.timezone || "Europe/Istanbul", email: String(s.email || "").trim(),
-      socials, avatar: s.avatar || "", portrait: s.portrait || "", face: s.face || "", facts: clean(s.facts),
+      socials, avatar: s.avatar || "", portrait: s.portrait || "", face: s.face || "", faceCut: s.faceCut || "", facts: clean(s.facts),
       words: (s.words || []).filter(Boolean),
       cv: {
         experience: clean(s.cv.experience), education: clean(s.cv.education), skills: (s.cv.skills || []).filter(Boolean),
@@ -1250,7 +1250,12 @@
         return;
       }
       const uprm = e.target.closest("[data-uprm]");
-      if (uprm) { const k = uprm.dataset.uprm; removePath(S.site[k]); S.site[k] = ""; renderProfile(); updateBar(); return; }
+      if (uprm) {
+        const k = uprm.dataset.uprm;
+        removePath(S.site[k]); S.site[k] = "";
+        if (k === "face" && S.site.faceCut) { removePath(S.site.faceCut); S.site.faceCut = ""; }
+        renderProfile(); updateBar(); return;
+      }
       if (e.target.closest("[data-pdfrm]")) { removePath(S.site.cv.pdf); S.site.cv.pdf = ""; renderCV(); updateBar(); return; }
       if (e.target.closest("[data-cfgsave]")) {
         const v = k => $(`[data-cfg="${k}"]`).value.trim();
@@ -1281,6 +1286,8 @@
           stage(path, blob);
           removePath(S.site.face);
           S.site.face = path;
+          // eski şeffaf kafa görseli yeni yüzle uyuşmaz; oyun yeni yüzü dairede kullanır
+          if (S.site.faceCut) { removePath(S.site.faceCut); S.site.faceCut = ""; }
           renderProfile(); updateBar();
           toast("Yüzün hazır! Yayınlayınca oyunda ve beğenilerde görünecek 😄", "ok", 5000);
           return;

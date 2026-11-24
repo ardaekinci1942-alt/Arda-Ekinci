@@ -1,4 +1,4 @@
-/* Uçan Arda — tek dokunuşla uçma oyunu (özgün tasarım: anı fotoğraflarından kuleler, neon şehirler) */
+/* Uçan Arda — tek dokunuşla uçma oyunu (özgün tasarım: neon kuleler, gezilen şehirlerin tabelaları; ekrandaki tek yüz Arda'nınki) */
 (function () {
   "use strict";
   const AE = window.AE;
@@ -10,7 +10,7 @@
   let W = 0, H = 0, dpr = 1, S = 1, GY = 0;
   let state = "ready", t = 0, last = 0, acc = 0, shake = 0, deadAt = 0;
   let bird, towers, hearts, parts, floats, score, best, speed, nextX;
-  let face = null, photos = [], signs = [], stars = [], photoIdx = 0;
+  let face = null, sprite = null, signs = [], stars = [], towerN = 0;
 
   const rnd = (a, b) => a + Math.random() * (b - a);
   const getBest = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch (e) { return 0; } };
@@ -32,6 +32,21 @@
       im.onerror = () => res(null);
       im.src = src;
     });
+  }
+
+  // şeffaf kafa görselinin etrafına ince beyaz kenar (çıkartma görünümü), bir kez hazırlanır
+  function sticker(img) {
+    const k = 320 / Math.max(img.width, img.height);
+    const w = Math.round(img.width * k), h = Math.round(img.height * k), p = 8;
+    const c = document.createElement("canvas");
+    c.width = w + p * 2; c.height = h + p * 2;
+    const x = c.getContext("2d");
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; x.drawImage(img, p + Math.cos(a) * 5, p + Math.sin(a) * 5, w, h); }
+    x.globalCompositeOperation = "source-in";
+    x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+    x.globalCompositeOperation = "source-over";
+    x.drawImage(img, p, p, w, h);
+    return c;
   }
 
   function measure() {
@@ -66,9 +81,9 @@
     const top = H * 0.14 + gap / 2, bot = GY - H * 0.06 - gap / 2;
     const prev = towers.length ? towers[towers.length - 1].gy : (top + bot) / 2;
     const gy = Math.max(top, Math.min(bot, prev + rnd(-H * 0.28, H * 0.28)));
-    const tw = 92 * S;
-    towers.push({ x: nextX, gy, gap, w: tw, passed: false, seed: Math.random() * 1000, pi: photoIdx });
-    photoIdx += 4;
+    const tw = 84 * S;
+    towers.push({ x: nextX, gy, gap, w: tw, passed: false, seed: Math.random() * 1000, name: signs.length ? signs[towerN % signs.length] : "" });
+    towerN++;
     if (Math.random() < 0.45) hearts.push({ x: nextX + tw + spacing() / 2 - tw / 2, y: Math.max(top, Math.min(bot, gy + rnd(-gap * 0.25, gap * 0.25))), got: false, p: Math.random() * 6 });
     nextX += spacing();
   }
@@ -149,33 +164,53 @@
     if (ar > tr) { sw = img.height * tr; sx = (img.width - sw) / 2; } else { sh = img.width / tr; sy = (img.height - sh) / 2; }
     ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
   }
-  function polaroid(x, y, w, h, img, rot) {
-    ctx.save();
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.rotate(rot);
-    ctx.fillStyle = "rgba(0,0,0,.35)";
-    rr(-w / 2 + 3, -h / 2 + 5, w, h, 5); ctx.fill();
-    ctx.fillStyle = "#f6f1e8";
-    rr(-w / 2, -h / 2, w, h, 5); ctx.fill();
-    const p = w * 0.08;
-    if (img) cover(img, -w / 2 + p, -h / 2 + p, w - p * 2, h - p * 3.2);
-    else { ctx.fillStyle = "#2a241f"; ctx.fillRect(-w / 2 + p, -h / 2 + p, w - p * 2, h - p * 3.2); }
-    ctx.restore();
+  /* neon kuleler: koyu cam gövde, yanıp sönen pencereler, ağızda parlayan kapak; alt gövdede gezilen şehrin adı */
+  const hash = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+  function segment(tw, y0, y1, capBottom) {
+    const x = tw.x, w = tw.w, h = y1 - y0, A = accentRGB();
+    if (h < 4) return;
+    ctx.fillStyle = `rgba(${A}, .08)`;
+    rr(x - 9, y0, w + 18, h, 14); ctx.fill();
+    const g = ctx.createLinearGradient(x, 0, x + w, 0);
+    g.addColorStop(0, "#261b33"); g.addColorStop(0.5, "#120d1a"); g.addColorStop(1, "#1e1529");
+    ctx.fillStyle = g; rr(x, y0, w, h, 9); ctx.fill();
+    const label = !capBottom && tw.name && h > 170 * S;
+    const cols = 3, cw = w * 0.17, gx = (w - cols * cw) / (cols + 1), rh = 21 * S, wh = 9 * S;
+    const pad = 22 * S, salt = tw.seed + (capBottom ? 0 : 97);
+    for (let r = 0, yy = capBottom ? y1 - pad - wh : y0 + pad; capBottom ? yy > y0 + 4 : yy + wh < y1 - 4; r++, yy += capBottom ? -rh : rh) {
+      for (let c = 0; c < cols; c++) {
+        if (label && c === 1) continue;
+        const v = hash(salt, r * cols + c);
+        if (v < 0.58) continue;
+        const a = v > 0.95 ? 0.4 + 0.4 * Math.sin(t * 5 + v * 60) : 0.78;
+        ctx.fillStyle = v > 0.87 ? `rgba(255, 92, 140, ${a})` : v > 0.74 ? `rgba(${A}, ${a})` : `rgba(255, 236, 205, ${a * 0.75})`;
+        ctx.fillRect(x + gx + c * (cw + gx), yy, cw, wh);
+      }
+    }
+    if (label) {
+      ctx.save();
+      ctx.translate(x + w / 2, y0 + Math.min(h, GY - y0) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = `700 ${Math.round(12 * S)}px Inter, system-ui, sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = `rgba(${A}, .95)`;
+      ctx.fillText(tw.name.toLocaleUpperCase("tr").slice(0, 16), 0, 0);
+      ctx.restore();
+    }
+    ctx.strokeStyle = `rgba(${A}, .62)`; ctx.lineWidth = 1.5;
+    rr(x + 0.75, y0 + 0.75, w - 1.5, h - 1.5, 9); ctx.stroke();
+    const capH = 12 * S, cy = capBottom ? y1 - capH : y0;
+    ctx.fillStyle = `rgba(${A}, .16)`;
+    rr(x - 13, cy - 6 * S, w + 26, capH + 12 * S, 12); ctx.fill();
+    ctx.fillStyle = `rgba(${A}, .95)`;
+    rr(x - 6, cy, w + 12, capH, 6); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.6)";
+    ctx.fillRect(x - 1, cy + (capBottom ? capH - 4 * S : 3 * S), w + 2, 1.5);
   }
   function tower(tw) {
-    const top = tw.gy - tw.gap / 2, bot = tw.gy + tw.gap / 2, bh = tw.w * 1.18;
-    let k = 0;
-    for (let y = top - bh; y > -bh; y -= bh * 0.92) {
-      polaroid(tw.x, y, tw.w, bh, photos.length ? photos[(tw.pi + k) % photos.length] : null, Math.sin(tw.seed + k * 1.7) * 0.06);
-      k++;
-    }
-    for (let y = bot; y < GY + bh; y += bh * 0.92) {
-      polaroid(tw.x, y, tw.w, bh, photos.length ? photos[(tw.pi + k) % photos.length] : null, Math.sin(tw.seed + k * 1.7) * 0.06);
-      k++;
-    }
-    ctx.fillStyle = `rgba(${accentRGB()}, .9)`;
-    ctx.fillRect(tw.x - 4, top - 3, tw.w + 8, 3);
-    ctx.fillRect(tw.x - 4, bot, tw.w + 8, 3);
+    const top = tw.gy - tw.gap / 2, bot = tw.gy + tw.gap / 2;
+    segment(tw, -24, top, true);
+    segment(tw, bot, GY + 24, false);
   }
   function heart(x, y, s) {
     ctx.save();
@@ -195,6 +230,13 @@
     const g = ctx.createRadialGradient(0, 0, b.r * 0.6, 0, 0, b.r * 1.9);
     g.addColorStop(0, `rgba(${accentRGB()}, .45)`); g.addColorStop(1, `rgba(${accentRGB()}, 0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, b.r * 1.9, 0, Math.PI * 2); ctx.fill();
+    if (sprite) {
+      // yalnızca kafa: arka plan yok, ince beyaz çıkartma kenarı
+      const hh = b.r * 3.05, ww = hh * sprite.width / sprite.height;
+      ctx.drawImage(sprite, -ww / 2, -hh * 0.5, ww, hh);
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
     if (face) cover(face, -b.r, -b.r, b.r * 2, b.r * 2);
@@ -213,6 +255,8 @@
   function draw() {
     const A = accentRGB();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // her karede tuvali tamamen boya: gökyüzü degradesinin alt kısmı yarı saydam, temizlenmezse önceki kareler (yüz izleri) kalır
+    ctx.fillStyle = "#07060a"; ctx.fillRect(0, 0, W, H);
     if (shake > 0) ctx.translate(rnd(-6, 6) * shake * 3, rnd(-6, 6) * shake * 3);
     const sky = ctx.createLinearGradient(0, 0, 0, GY);
     sky.addColorStop(0, "#07060a"); sky.addColorStop(0.55, "#170f22"); sky.addColorStop(1, `rgba(${A}, .55)`);
@@ -293,7 +337,7 @@
       <div class="g-hud"><b class="g-score" aria-live="polite">0</b><span class="g-best"></span></div>
       <button type="button" class="icon-btn g-close" aria-label="Kapat">${AE.icon.close}</button>
       <div class="g-panel g-start"><div class="g-card">
-        ${AE.faceHTML("g-face")}
+        ${AE.headHTML("g-face")}
         <p class="eyebrow plain">Mini oyun</p><h2>Uçan <em>Arda</em></h2>
         <p>Dokun, tıkla ya da boşluğa bas: yüksel. Anı kulelerine çarpmadan geç, kalpleri topla.</p>
         <button type="button" class="btn solid" data-g="start">Başla</button></div></div>
@@ -312,10 +356,11 @@
     reset();
     state = "ready";
     panel("start");
-    const fsrc = AE.faceSrc();
-    loadImg(fsrc).then(im => { face = im; });
-    const pool = D.photos.slice().sort(() => Math.random() - 0.5).slice(0, 14);
-    Promise.all(pool.map(x => loadImg(x.ph.sm || x.ph.thumb))).then(list => { photos = list.filter(Boolean); });
+    face = sprite = null;
+    loadImg(AE.faceCutSrc()).then(im => {
+      if (im) { sprite = sticker(im); return; }
+      loadImg(AE.faceSrc()).then(f => { face = f; });
+    });
     signs = [];
     D.posts.forEach(p => { const n = p.place || p.country; if (n && !signs.includes(n) && signs.length < 8) signs.push(n); });
     if (!signs.length) signs = ["Anılar", "Yolculuk", "Hayat"];
