@@ -193,6 +193,7 @@
       avatar: String(s.avatar || ""),
       portrait: String(s.portrait || ""),
       face: String(s.face || ""),
+      faceCut: String(s.faceCut || ""),
       facts: arr(s.facts).filter(f => f.k || f.v),
       words: list(s.words).length ? list(s.words) : DEFAULT_WORDS,
       cv: {
@@ -406,6 +407,8 @@
   };
   // yalnızca yönetim panelinde kırpılan yüz; profil/portre gibi tam fotoğraflara asla düşmez
   AE.faceSrc = () => (AE.data && AE.data.site.face) || "";
+  // arka planı tamamen silinmiş, yalnızca kafa (şeffaf görsel) — oyun ve oyun görsellerinde
+  AE.faceCutSrc = () => (AE.data && AE.data.site.faceCut) || "";
   /* kalp içinde yüz: kare yüz kırpması kalp yoluyla kesilir (yönetim panelindeki kılavuzla aynı geometri) */
   AE.HEART_D = "M50 90C47 87 2 60 2 30 2 13 14 2 28 2c10 0 18 5 22 13C54 7 62 2 72 2c14 0 26 11 26 28 0 30-45 57-48 60z";
   let hfN = 0;
@@ -586,6 +589,10 @@
   AE.faceHTML = (cls = "") => {
     const f = AE.faceSrc();
     return `<span class="face ${cls}">${f ? `<img src="${esc(f)}" alt="" draggable="false">` : `<b>${esc(initials(AE.data.site.name))}</b>`}</span>`;
+  };
+  AE.headHTML = (cls = "") => {
+    const f = AE.faceCutSrc();
+    return f ? `<img class="head ${cls}" src="${esc(f)}" alt="" draggable="false" onerror="this.remove()">` : AE.faceHTML(cls);
   };
   AE.footerHTML = () => {
     const s = AE.data.site;

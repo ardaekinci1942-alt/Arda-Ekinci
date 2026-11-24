@@ -211,7 +211,7 @@
   /* ================= oyun ================= */
   AE.openGame = async () => {
     try {
-      await AE.loadScript("assets/js/game.js?v=5");
+      await AE.loadScript("assets/js/game.js?v=6");
       AE.game.open();
     } catch (e) {
       AE.toast("Oyun yüklenemedi, internetini kontrol et.");
