@@ -404,7 +404,18 @@
     }
     return scripts.get(src);
   };
-  AE.faceSrc = () => (AE.data && (AE.data.site.face || AE.data.site.avatar)) || "";
+  // yalnızca yönetim panelinde kırpılan yüz; profil/portre gibi tam fotoğraflara asla düşmez
+  AE.faceSrc = () => (AE.data && AE.data.site.face) || "";
+  /* kalp içinde yüz: kare yüz kırpması kalp yoluyla kesilir (yönetim panelindeki kılavuzla aynı geometri) */
+  AE.HEART_D = "M50 90C47 87 2 60 2 30 2 13 14 2 28 2c10 0 18 5 22 13C54 7 62 2 72 2c14 0 26 11 26 28 0 30-45 57-48 60z";
+  let hfN = 0;
+  AE.heartFace = (cls = "") => {
+    const f = AE.faceSrc();
+    if (!f) return "";
+    const id = `hf${++hfN}`, src = esc(f);
+    return `<svg class="hface${cls ? ` ${cls}` : ""}" viewBox="-3 -3 106 98" aria-hidden="true" focusable="false"><defs><clipPath id="${id}"><path d="${AE.HEART_D}"/></clipPath></defs>` +
+      `<image href="${src}" xlink:href="${src}" x="0" y="-4" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/><path class="hf-line" d="${AE.HEART_D}"/></svg>`;
+  };
 
   /* ================= kapsam (view yaşam döngüsü) ================= */
   AE.scope = function (root) {

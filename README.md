@@ -19,7 +19,7 @@ Bütün içerik `/admin` panelinden yönetilir.
 Her anının kendine ait bir bağlantısı var (ör. `ardaekinci.com/#/ani/…`), “Paylaş” ile WhatsApp vb. yerlere gönderilebilir.
 
 ### Eğlenceli ve fütüristik kısımlar
-- **Beğeni:** Fotoğrafa çift dokun ya da ♥'ye bas, kalp patlar ve yüzün fırlar. Hesap gerekmez; toplam sayılar ücretsiz bir sayaç servisinde (abacus.jasoncameron.dev) tutulur, servis kapalıysa sayı gizlenir ama kalp yine çalışır.
+- **Beğeni:** Fotoğrafa çift dokun ya da ♥'ye bas, kalp patlar ve kalp şeklinde yalnızca yüzün fırlar (tam fotoğraf asla görünmez). Hesap gerekmez; toplam sayılar ücretsiz bir sayaç servisinde (abacus.jasoncameron.dev) tutulur, servis kapalıysa sayı gizlenir ama kalp yine çalışır.
 - **Uçan Arda (`#/oyun`):** Yüzünle oynanan mini oyun. Anı fotoğraflarından kulelerin arasından uç, kalpleri topla. En iyi skor ziyaretçinin cihazında saklanır.
 - **3B zaman tüneli:** Ana sayfada kaydırdıkça yıllar ve fotoğraflar arasından geçmişten bugüne uçulur.
 - **Aurora ışığı ve vizör:** Masaüstünde girişte fareye tepki veren canlı ışık; giriş fotoğrafında kamera vizörü (koordinat, REC).
@@ -34,7 +34,7 @@ Her anının kendine ait bir bağlantısı var (ör. `ardaekinci.com/#/ani/…`)
   “✎ Not” ile yazı paylaşımı. Bir anıya dokununca düzenleme: başlık, açıklama, konum, tarih, albüm, kapak ★, sabitle 📌, gizle, fotoğraf ekle/çıkar/sırala.
 - **Toplu işlem:** “Seç” (ya da bir anıya uzun bas) → albüme ekle, konum, tarih, gizle/göster, sabitle, kapağa ekle, birleştir, ayır, **toplu sil**.
 - **Albümler:** oluştur, kapak seç, anı ekle/çıkar, sırala.
-- **Profil:** profil fotoğrafı, portre, **yüzün** (dairede kırparak; oyunda ve beğenilerde görünür), isim, kullanıcı adı, tanıtım cümlesi, hakkımda yazısı, “şu sıralar”, sosyal medya, kısaca bilgiler.
+- **Profil:** profil fotoğrafı, portre, **yüzün** (kalp kılavuzuyla kırparak; beğenilerde kalp içinde, oyunda karakter olarak görünür), isim, kullanıcı adı, tanıtım cümlesi, hakkımda yazısı, “şu sıralar”, sosyal medya, kısaca bilgiler.
 - **CV:** deneyim, eğitim, yetenekler, diller, projeler (görselli), PDF CV yükleme.
 - **Ayarlar:** vurgu rengi, açılış animasyonu, ana sayfa bölümlerini aç/kapa, dönen ve kayan kelimeler.
 

@@ -459,7 +459,10 @@
     freeCanvas(r.canvas);
     return r.blob;
   }
-  /* yüz kırpıcı: dairenin içinde sürükle / yakınlaştır */
+  /* yüz kırpıcı: kalbin içinde sürükle / yakınlaştır.
+     Kalp yolu sitedeki AE.HEART_D ile aynıdır; kare kırpma (0,-4)-(100,96) alanına oturur. */
+  const HEART_D = "M50 90C47 87 2 60 2 30 2 13 14 2 28 2c10 0 18 5 22 13C54 7 62 2 72 2c14 0 26 11 26 28 0 30-45 57-48 60z";
+  const HEART_GUIDE = `<svg class="crop-ring" viewBox="0 -4 100 100" aria-hidden="true"><path fill-rule="evenodd" fill="rgba(0,0,0,.58)" d="M-20 -24H120V116H-20Z${HEART_D}"/><path d="${HEART_D}" fill="none" stroke="#fff" stroke-width=".7" stroke-linejoin="round"/></svg>`;
   function openCropper(file) {
     return new Promise(async res => {
       let img;
@@ -468,9 +471,9 @@
       let out = null;
       const sh = sheet({
         title: "Yüzünü ortala", sticky: true,
-        body: `<div class="crop-box"><img class="crop-img" src="${url}" alt="" draggable="false"><div class="crop-ring"></div></div>
+        body: `<div class="crop-box"><img class="crop-img" src="${url}" alt="" draggable="false">${HEART_GUIDE}</div>
           <label>Yakınlaştır<input type="range" min="1" max="5" step="0.01" value="1" data-zoom></label>
-          <p class="muted">Fotoğrafı sürükleyerek yüzünü dairenin ortasına getir. İki parmakla da yakınlaştırabilirsin.</p>`,
+          <p class="muted">Yakınlaştır ve fotoğrafı sürükleyerek yalnızca yüzünü kalbin içine yerleştir: gözlerin kalbin ortasının biraz üstünde, çenen alt uca yakın olsun. Sitede tam olarak kalbin içi görünür.</p>`,
         foot: `<button type="button" class="btn ghost" data-close>İptal</button><span class="sp"></span><button type="button" class="btn primary" data-ok>Kaydet</button>`,
         onClose: () => { URL.revokeObjectURL(url); res(out); }
       });
@@ -1101,7 +1104,7 @@
   };
   const uploaderHTML = (key, title, hint, rect) => {
     const v = S.site[key];
-    return `<div class="uploader" data-up="${key}"><div class="pic${rect ? " rect" : ""}">${v ? imgTag(v) : "Yok"}</div><div><b style="font-weight:500">${title}</b><p class="muted">${hint}</p>
+    return `<div class="uploader" data-up="${key}"><div class="pic${rect ? ` ${rect}` : ""}">${v ? imgTag(v) : "Yok"}</div><div><b style="font-weight:500">${title}</b><p class="muted">${hint}</p>
       <div class="acts" style="margin-top:8px"><label class="btn sm">Yükle<input type="file" accept="image/*" hidden data-upfile="${key}"></label>${v ? `<button type="button" class="btn sm ghost danger" data-uprm="${key}">Kaldır</button>` : ""}</div></div></div>`;
   };
   const TZ = ["Europe/Istanbul", "Europe/London", "Europe/Berlin", "Europe/Paris", "Europe/Amsterdam", "Europe/Vienna", "Europe/Rome", "Europe/Madrid", "America/New_York", "America/Chicago", "America/Los_Angeles", "Asia/Dubai", "Asia/Tokyo", "Australia/Sydney"];
@@ -1112,8 +1115,8 @@
     $("#profileForm").innerHTML = `
       <div class="card"><h3>Fotoğraflar</h3>
         ${uploaderHTML("avatar", "Profil fotoğrafı", "Anılar sayfasında ve paylaşımlarda yuvarlak görünür.")}
-        ${uploaderHTML("portrait", "Portre", "“Hakkımda” sayfasındaki büyük fotoğraf. Boşsa kapak fotoğrafların kullanılır.", true)}
-        ${uploaderHTML("face", "Yüzün (oyun & beğeni)", "Yüzünün yakın olduğu bir fotoğraf seç ve dairede ortala. Oyundaki karakter, beğenince fırlayan yüz ve sürprizlerde bu görünür.")}
+        ${uploaderHTML("portrait", "Portre", "“Hakkımda” sayfasındaki büyük fotoğraf. Boşsa kapak fotoğrafların kullanılır.", "rect")}
+        ${uploaderHTML("face", "Yüzün (beğeni & oyun)", "Yüzünün yakın olduğu bir fotoğraf seç, yakınlaştırıp yalnızca yüzünü kalbin içine yerleştir. Beğenince kalp içinde bu yüz fırlar; oyunda da sen uçarsın. Tam fotoğraf hiçbir zaman görünmez.", "heart")}
       </div>
       <div class="card"><h3>Kimlik</h3>
         <div class="row2">${field("name", "İsim")}${field("handle", "Kullanıcı adı", { ph: "ardaekinci" })}</div>

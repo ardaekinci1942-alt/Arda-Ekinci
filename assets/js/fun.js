@@ -74,12 +74,12 @@
     if (streakN === 5) { AE.toast("5 beğeni! Teşekkürler ❤️"); AE.faceRain(); streakN = 0; }
   }
 
-  /* kalp patlaması (+ yüz) */
+  /* kalp patlaması (+ kalp içinde yüz) */
   AE.heartBurst = (x, y, big) => {
     if (x == null) { x = innerWidth / 2; y = innerHeight / 2; }
-    const face = AE.faceSrc();
+    const face = big ? AE.heartFace() : "";
     const parts = Array.from({ length: 9 }, (_, i) => `<i style="--a:${i * 40 + (Math.random() * 16 - 8)}deg;--d:${(60 + Math.random() * 50) | 0}px">♥</i>`).join("");
-    const b = AE.el(`<div class="burst${big ? " big" : ""}" style="left:${x}px;top:${y}px" aria-hidden="true">${HEART}${parts}${big && face ? `<img class="bf" src="${esc(face)}" alt="">` : ""}</div>`);
+    const b = AE.el(`<div class="burst${big ? " big" : ""}" style="left:${x}px;top:${y}px" aria-hidden="true">${HEART}${parts}${face ? `<span class="bf">${face}</span>` : ""}</div>`);
     document.body.appendChild(b);
     setTimeout(() => b.remove(), 1500);
   };
@@ -121,12 +121,12 @@
   AE.faceRain = () => {
     if (raining || reduced()) return;
     raining = true;
-    const face = AE.faceSrc();
+    const face = !!AE.faceSrc();
     const box = AE.el('<div class="rain" aria-hidden="true"></div>');
     const n = innerWidth < 600 ? 18 : 30;
     for (let i = 0; i < n; i++) {
       const s = (face ? 46 : 30) + Math.random() * 44;
-      box.insertAdjacentHTML("beforeend", `<span style="left:${(Math.random() * 100).toFixed(1)}%;width:${s | 0}px;height:${s | 0}px;font-size:${(s * 0.7) | 0}px;animation-duration:${(2.4 + Math.random() * 2.2).toFixed(2)}s;animation-delay:${(Math.random() * 1.2).toFixed(2)}s;--r:${(Math.random() * 720 - 360) | 0}deg">${face ? `<img src="${esc(face)}" alt="">` : "❤️"}</span>`);
+      box.insertAdjacentHTML("beforeend", `<span style="left:${(Math.random() * 100).toFixed(1)}%;width:${s | 0}px;height:${s | 0}px;font-size:${(s * 0.7) | 0}px;animation-duration:${(2.4 + Math.random() * 2.2).toFixed(2)}s;animation-delay:${(Math.random() * 1.2).toFixed(2)}s;--r:${(Math.random() * 720 - 360) | 0}deg">${face ? AE.heartFace() : "❤️"}</span>`);
     }
     document.body.appendChild(box);
     setTimeout(() => { box.remove(); raining = false; }, 6200);
@@ -211,7 +211,7 @@
   /* ================= oyun ================= */
   AE.openGame = async () => {
     try {
-      await AE.loadScript("assets/js/game.js?v=4");
+      await AE.loadScript("assets/js/game.js?v=5");
       AE.game.open();
     } catch (e) {
       AE.toast("Oyun yüklenemedi, internetini kontrol et.");
