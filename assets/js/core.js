@@ -420,6 +420,14 @@
       `<image href="${src}" xlink:href="${src}" x="0" y="-4" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/><path class="hf-line" d="${AE.HEART_D}"/></svg>`;
   };
 
+  /* ScrollTrigger'ları sayfadaki konum sırasına göre dizip yeniden hesapla.
+     Sabitlenen (pin) bölümler oluşturulma sırasıyla hesaplanırsa alttaki bölümün başlangıcı yanlış çıkar
+     ve tünelden sonra ekran boş kalır. */
+  AE.stRefresh = () => {
+    if (!window.ScrollTrigger) return;
+    try { ScrollTrigger.sort(); ScrollTrigger.refresh(); } catch (e) {}
+  };
+
   /* ================= kapsam (view yaşam döngüsü) ================= */
   AE.scope = function (root) {
     const fns = [];

@@ -134,7 +134,7 @@
     if (AE.paintLikes) AE.paintLikes(viewEl);
     if (AE.fx) { AE.fx.paintWeather(viewEl); AE.fx.holo(viewEl, scope); }
     if (AE.paintVisits) AE.paintVisits();
-    if (hasGsap()) { try { ScrollTrigger.refresh(); } catch (e) {} }
+    if (hasGsap()) AE.stRefresh();
     if (restoreY) requestAnimationFrame(() => window.scrollTo(0, restoreY));
     topEl.classList.remove("away");
     document.body.classList.remove("bar-up");
@@ -400,7 +400,7 @@
     if (AE.heroGo) AE.heroGo();
     if (hasGsap()) {
       try { await document.fonts.ready; } catch (e) {}
-      try { ScrollTrigger.refresh(); } catch (e) {}
+      AE.stRefresh();
     }
   }
 
